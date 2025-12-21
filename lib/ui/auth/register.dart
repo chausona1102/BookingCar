@@ -35,49 +35,6 @@ class _RegisterState extends State<Register> {
     }
   }
 
-  // Future<void> _register() async {
-  //   setState(() => _isLoading = true);
-  //   final email = _emailController.text.trim();
-  //   final username = _usernameController.text.trim();
-  //   final phone = _phoneController.text.trim();
-  //   final firstname = _firstnameController.text.trim();
-  //   final lastname = _lastnameController.text.trim();
-  //   final password = _passwordController.text.trim();
-  //   final passwordConfirm = _passwordConfirmController.text.trim();
-  //   if (password != passwordConfirm) {
-  //     setState(() {
-  //       _isLoading = false;
-  //     });
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       const SnackBar(content: Text("Mật khẩu xác nhận không khớp!")),
-  //     );
-  //     return;
-  //   }
-  //   final success = await _authService.register(
-  //     email: email,
-  //     username: username,
-  //     firstname: firstname,
-  //     lastname: lastname,
-  //     phone: phone,
-  //     password: password,
-  //     avatar: _avatar,
-  //   );
-  //   setState(() {
-  //     _isLoading = false;
-  //   });
-  //   if (!mounted) return;
-  //   if (success) {
-  //     ScaffoldMessenger.of(
-  //       context,
-  //     ).showSnackBar(const SnackBar(content: Text("Đăng ký thành công!")));
-  //     context.go('/login');
-  //   } else {
-  //     ScaffoldMessenger.of(
-  //       context,
-  //     ).showSnackBar(const SnackBar(content: Text("Đăng ký thất bại!")));
-  //   }
-  // }
-
   Future<void> _register() async {
     setState(() => _isLoading = true);
 
@@ -88,7 +45,7 @@ class _RegisterState extends State<Register> {
     final lastname = _lastnameController.text.trim();
     final password = _passwordController.text.trim();
     final passwordConfirm = _passwordConfirmController.text.trim();
-
+  
     try {
       final authManager = context.read<AuthManager>();
 

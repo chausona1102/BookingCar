@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:pocketbase/pocketbase.dart';
 import '../models/user.dart';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'pb_client.dart';
 
 class AuthService extends ChangeNotifier {
-  static final AuthService _instance = AuthService._internal();
-  late final PocketBase pb;
-  factory AuthService() => _instance;
+  PocketBase get pb => pocketBase;
 
-  AuthService._internal() {
-    final url = dotenv.env['POCKETBASE_URL'] ?? 'http://10.0.2.2:8090';
-    pb = PocketBase(url);
-  }
+  // static final AuthService _instance = AuthService._internal();
+  // late final PocketBase pb;
+  // factory AuthService() => _instance;
+
+  // AuthService._internal() {
+  //   final url = dotenv.env['POCKETBASE_URL'] ?? 'http://10.0.2.2:8090';
+  //   pb = PocketBase(url);
+  // }
   Future<bool> login(String username, String password) async {
     try {
       await pb.collection('users').authWithPassword(username, password);
@@ -69,4 +71,6 @@ class AuthService extends ChangeNotifier {
     if (record == null) return null;
     return User.fromJson(record.toJson());
   }
+
+  String? get userId => pb.authStore.model?.id;
 }

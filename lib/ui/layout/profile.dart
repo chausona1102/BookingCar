@@ -10,6 +10,10 @@ class Profile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = context.watch<AuthManager>().user;
+    if (user == null) {
+      Future.microtask(() => context.go('/login'));
+      return const SizedBox.shrink();
+    }
     return Scaffold(
       backgroundColor: Colors.green.shade50,
       body: Padding(

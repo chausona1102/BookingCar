@@ -1,3 +1,4 @@
+import 'package:booking_app/ui/auth/customer_manager.dart';
 import 'package:booking_app/ui/layout/customer/become_driver_page.dart';
 import 'package:booking_app/ui/layout/profile.dart';
 import 'package:flutter/material.dart';
@@ -21,7 +22,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => AuthManager())],
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthManager()),
+        ChangeNotifierProvider(create: (_) => CustomerManager()),
+      ],
       child: const AppRoot(),
     );
   }
@@ -46,7 +50,7 @@ class _AppRootState extends State<AppRoot> {
     _router = GoRouter(
       redirect: (context, state) {
         final auth = context.read<AuthManager>();
-        final loggedIn = auth.isLoggedIn ?? false;
+        final loggedIn = auth.isLoggedIn;
 
         final loggingIn = state.matchedLocation == '/login';
         final registering = state.matchedLocation == '/register';

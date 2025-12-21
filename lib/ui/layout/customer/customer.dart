@@ -58,7 +58,7 @@ class _CustomerState extends State<Customer> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Xin chào, ${user!.fullName}',
+                    user != null ? 'Xin chào, ${user.fullName}' : '',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ],

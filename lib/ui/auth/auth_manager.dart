@@ -58,7 +58,8 @@ class AuthManager extends ChangeNotifier {
   }
 
   User? get currentUser => _authService.currentUser;
-  static String? currentUserId() {
-    return AuthService().currentUser?.id;
-  }
+  // static String? currentUserId() {
+  //   return AuthService().currentUser?.id;
+  // }
+  String? get currentUserId => _authService.userId;
 }
