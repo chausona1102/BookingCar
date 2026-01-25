@@ -1,4 +1,5 @@
 import 'package:booking_app/ui/auth/auth_manager.dart';
+import 'package:booking_app/ui/auth/customer_manager.dart';
 import 'package:booking_app/ui/shared/navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -6,14 +7,17 @@ import 'package:provider/provider.dart';
 
 class Profile extends StatelessWidget {
   const Profile({super.key});
-
   @override
   Widget build(BuildContext context) {
     final user = context.watch<AuthManager>().user;
+
     if (user == null) {
-      Future.microtask(() => context.go('/login'));
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.go('/login');
+      });
       return const SizedBox.shrink();
     }
+
     return Scaffold(
       backgroundColor: Colors.green.shade50,
       body: Padding(
@@ -80,7 +84,7 @@ class Profile extends StatelessWidget {
                     const Divider(),
 
                     TextButton(
-                      onPressed: () => {context.go('/register-driver')},
+                      onPressed: () => {context.push('/register-driver')},
                       style: TextButton.styleFrom(
                         foregroundColor: Colors.white,
                         backgroundColor: Colors.green,

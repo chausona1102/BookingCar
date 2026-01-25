@@ -1,4 +1,6 @@
+import 'package:booking_app/models/membership.dart';
 import 'package:flutter/material.dart';
+import 'package:pocketbase/pocketbase.dart';
 import 'dart:io';
 import '../../services/customer_service.dart';
 
@@ -17,5 +19,17 @@ class CustomerManager extends ChangeNotifier {
       carimage: carimage,
     );
   }
-  
+
+  // Future<bool> hasMembership({required String user}) async {
+  //   return await _customerService.hasMembership(user);
+  // }
+  Future<Membership> getMembership({required String user}) async {
+    final m = await _customerService.getCurrentMembership(user);
+
+    if (m == null) {
+      throw Exception('User chưa có membership');
+    }
+
+    return m;
+  }
 }

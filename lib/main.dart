@@ -1,15 +1,23 @@
+import 'package:booking_app/models/vipdata.dart';
 import 'package:booking_app/ui/auth/customer_manager.dart';
 import 'package:booking_app/ui/layout/customer/become_driver_page.dart';
+import 'package:booking_app/ui/layout/customer/become_vip_member_page.dart';
+import 'package:booking_app/ui/layout/customer/booking_page.dart';
+import 'package:booking_app/ui/layout/customer/payment_page.dart';
+import 'package:booking_app/ui/layout/customer/payment_success.dart';
+import 'package:booking_app/ui/layout/driver/driver_list_page.dart';
+import 'package:booking_app/ui/layout/driver/driver_manager.dart';
+import 'package:booking_app/ui/layout/driver/driver_page.dart';
 import 'package:booking_app/ui/layout/profile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-
 import './ui/auth/login_page.dart';
-import './ui/layout/customer/customer.dart';
+import './ui/layout/customer/customer_page.dart';
 import './ui/auth/auth_manager.dart';
 import 'ui/auth/register.dart';
+import 'package:booking_app/ui/layout/customer/payment_manager.dart';
 
 void main() async {
   await dotenv.load();
@@ -25,6 +33,8 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthManager()),
         ChangeNotifierProvider(create: (_) => CustomerManager()),
+        ChangeNotifierProvider(create: (_) => PaymentManager()),
+        ChangeNotifierProvider(create: (_) => DriverManager()),
       ],
       child: const AppRoot(),
     );
@@ -48,25 +58,66 @@ class _AppRootState extends State<AppRoot> {
     context.read<AuthManager>().restoreLogin();
 
     _router = GoRouter(
+      refreshListenable: context.read<AuthManager>(),
       redirect: (context, state) {
         final auth = context.read<AuthManager>();
         final loggedIn = auth.isLoggedIn;
+        final role = auth.user?.role;
 
         final loggingIn = state.matchedLocation == '/login';
         final registering = state.matchedLocation == '/register';
 
-        if (!loggedIn && !loggingIn && !registering) return '/login';
-        if (loggedIn && (loggingIn || registering)) return '/';
+        if (!loggedIn && !loggingIn && !registering) {
+          return '/login';
+        }
+
+        if (loggedIn && (loggingIn || registering)) {
+          return role == 'drivers' ? '/driver-page' : '/';
+        }
+
+        if (loggedIn && role == 'drivers' && state.matchedLocation == '/') {
+          return '/driver-page';
+        }
+
         return null;
       },
       routes: [
         GoRoute(path: '/', builder: (_, __) => const Customer()),
         GoRoute(path: '/login', builder: (_, __) => const LoginPage()),
-        GoRoute(path: '/profile', builder: (_, __) => const Profile()),
         GoRoute(path: '/register', builder: (_, __) => const Register()),
+        GoRoute(path: '/profile', builder: (_, __) => const Profile()),
         GoRoute(
           path: '/register-driver',
           builder: (_, __) => const BecomeDriverPage(),
+        ),
+        GoRoute(
+          path: '/driver-list',
+          builder: (_, __) => const DriverListPage(),
+        ),
+        GoRoute(path: '/driver-page', builder: (_, __) => const DriverPage()),
+        GoRoute(
+          path: '/become-vip-page',
+          builder: (_, __) => const BecomeVipMemberPage(),
+        ),
+        GoRoute(
+          path: '/payment-page',
+          builder: (context, state) {
+            final data = state.extra as Vipdata;
+            return PaymentPage(data: data);
+          },
+        ),
+        GoRoute(
+          path: '/payment-success',
+          builder: (_, __) {
+            return PaymentSuccessPage();
+          },
+        ),
+        GoRoute(
+          path: '/booking',
+          builder: (context, state) {
+            final data = state.extra as Map<String, dynamic>;
+            return BookingPage(data: data);
+          },
         ),
       ],
     );

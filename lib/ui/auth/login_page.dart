@@ -24,11 +24,20 @@ class _LoginPageState extends State<LoginPage> {
 
     final authManager = context.read<AuthManager>();
     final success = await authManager.login(username, password);
-
     setState(() => _isLoading = false);
 
     if (success) {
-      context.go('/');
+      final role = authManager.role;
+      print("role: $role");
+      if (role == 'driver') {
+        context.go('/driver-page');
+      } else if (role == 'customer') {
+        context.go('/');
+      } else if (role == 'admin') {
+        context.go('/admin');
+      } else {
+        context.go('/NotFound');
+      }
     } else {
       ScaffoldMessenger.of(
         context,

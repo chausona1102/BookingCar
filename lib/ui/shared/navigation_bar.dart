@@ -10,7 +10,6 @@ class NavBar extends StatelessWidget {
     return BottomAppBar(
       height: 65,
       color: Color(0xFF1E1E1E),
-      // color: Theme.of(context).hoverColor,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
@@ -21,7 +20,7 @@ class NavBar extends StatelessWidget {
               size: 26,
             ),
             onPressed: () {
-              context.go('/booking');
+              context.push('/booking');
             },
           ),
           IconButton(
@@ -31,13 +30,13 @@ class NavBar extends StatelessWidget {
               size: 26,
             ),
             onPressed: () {
-              context.go('/notification');
+              context.push('/notification');
             },
           ),
           IconButton(
             icon: const Icon(Icons.home, color: Colors.green, size: 26),
             onPressed: () {
-              context.go('/');
+              context.push('/');
             },
           ),
           IconButton(
@@ -47,13 +46,13 @@ class NavBar extends StatelessWidget {
               size: 26,
             ),
             onPressed: () {
-              context.go('/history');
+              context.push('/history');
             },
           ),
           IconButton(
             icon: const Icon(Icons.person, color: Colors.green, size: 26),
             onPressed: () {
-              context.go('/profile');
+              context.push('/profile');
             },
           ),
         ],

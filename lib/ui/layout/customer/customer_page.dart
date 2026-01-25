@@ -1,8 +1,11 @@
+import 'package:booking_app/models/membership.dart';
 import 'package:booking_app/ui/auth/auth_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../shared/navigation_bar.dart';
 import 'banner_manager.dart';
+import 'package:go_router/go_router.dart';
+import 'package:booking_app/ui/auth/customer_manager.dart';
 
 class Customer extends StatefulWidget {
   const Customer({super.key});
@@ -14,12 +17,34 @@ class Customer extends StatefulWidget {
 class _CustomerState extends State<Customer> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
-
+  Membership? _membership;
   @override
   void initState() {
     super.initState();
-
+    print('init state');
     Future.delayed(const Duration(seconds: 3), _autoSlide);
+    Future.microtask(() async {
+      final authManager = context.read<AuthManager>();
+      final customerManager = context.read<CustomerManager>();
+      final userId = authManager.currentUserId;
+      if (userId != null) {
+        try {
+          final record = await customerManager.getMembership(user: userId);
+          if (!mounted) return;
+          if (record != null) {
+            setState(() {
+              _membership = record;
+            });
+            print(record);
+          }
+        } catch (e) {
+          print('Lỗi $e');
+        }
+      } else {
+        context.push('/login');
+        print('Không tìm thấy userId');
+      }
+    });
   }
 
   void _autoSlide() {
@@ -102,7 +127,10 @@ class _CustomerState extends State<Customer> {
               children: [
                 IconButton(
                   onPressed: () {
-                    print('Dat oto');
+                    context.push(
+                      '/booking',
+                      extra: {'type': 'car', 'memberInfo': _membership},
+                    );
                   },
                   icon: _iconButton(
                     imagePath: 'assets/images/car.png',
@@ -111,7 +139,10 @@ class _CustomerState extends State<Customer> {
                 ),
                 IconButton(
                   onPressed: () {
-                    print('Dat xe máy');
+                    context.push(
+                      '/booking',
+                      extra: {'type': 'motobike', 'memberInfo': _membership},
+                    );
                   },
                   icon: _iconButton(
                     imagePath: 'assets/images/motobike.png',
@@ -126,14 +157,14 @@ class _CustomerState extends State<Customer> {
                   ),
                 ),
                 IconButton(
-                  onPressed: () => {print('Dang ky hoi vien')},
+                  onPressed: () => {context.push('/become-vip-page')},
                   icon: _iconButton(
                     imagePath: 'assets/images/VIP_rmbg.png',
                     text: 'Hội viên',
                   ),
                 ),
                 IconButton(
-                  onPressed: () => {print('Booking tai xe')},
+                  onPressed: () => {context.push('/driver-list')},
                   icon: _iconButton(
                     imagePath: 'assets/images/driver.png',
                     text: 'Tài xế',
@@ -198,7 +229,7 @@ class _CustomerState extends State<Customer> {
               ),
             ),
             GestureDetector(
-              onTap: () => {print('Hoi vien')},
+              onTap: () => {context.push('/become-vip-page')},
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Container(

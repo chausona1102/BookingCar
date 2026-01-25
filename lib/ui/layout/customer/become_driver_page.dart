@@ -1,3 +1,4 @@
+import 'package:booking_app/ui/shared/myappbar.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -62,16 +63,16 @@ class _BecomeDriverPage extends State<BecomeDriverPage> {
         user: userId,
         carimage: _carimage,
       );
-      print(_licensenumber.text.trim());
-      print(_selectedTypeCar!.name);
-      print(userId);
-      print(_carimage);
+      // print(_licensenumber.text.trim());
+      // print(_selectedTypeCar!.name);
+      // print(userId);
+      // print(_carimage);
 
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(success ? 'Đăng ký thành công' : 'Đăng ký thất bại'),
+          content: Text(success ? 'Đăng ký thành công!' : 'Đăng ký thất bại!'),
         ),
       );
 
@@ -84,7 +85,9 @@ class _BecomeDriverPage extends State<BecomeDriverPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: myAppBar(context, 'Đăng ký làm tài xế'),
       backgroundColor: Colors.green.shade50,
+
       body: SingleChildScrollView(
         child: Center(
           child: Padding(

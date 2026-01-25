@@ -5,14 +5,14 @@ final List<BannerItem> banners = [
   BannerItem(
     image: 'assets/images/banner1.png',
     onTap: (context) {
-      context.go('/booking');
+      context.push('/booking');
       print("banner hội viên");
     },
   ),
   BannerItem(
     image: 'assets/images/banner2.png',
     onTap: (context) {
-      context.go('/booking');
+      context.push('/booking');
       print("banner khuyến mãi");
     },
   ),
