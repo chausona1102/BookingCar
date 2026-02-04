@@ -28,7 +28,6 @@ class _LoginPageState extends State<LoginPage> {
 
     if (success) {
       final role = authManager.role;
-      print("role: $role");
       if (role == 'driver') {
         context.go('/driver-page');
       } else if (role == 'customer') {
@@ -117,7 +116,6 @@ class _LoginPageState extends State<LoginPage> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    print('Go register');
                     context.go('/register');
                   },
                   child: const Text('Chưa có tài khoản? Đăng ký ngay!'),

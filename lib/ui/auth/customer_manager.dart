@@ -1,6 +1,5 @@
 import 'package:booking_app/models/membership.dart';
 import 'package:flutter/material.dart';
-import 'package:pocketbase/pocketbase.dart';
 import 'dart:io';
 import '../../services/customer_service.dart';
 

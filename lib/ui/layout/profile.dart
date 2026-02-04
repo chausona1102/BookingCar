@@ -1,5 +1,4 @@
 import 'package:booking_app/ui/auth/auth_manager.dart';
-import 'package:booking_app/ui/auth/customer_manager.dart';
 import 'package:booking_app/ui/shared/navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';

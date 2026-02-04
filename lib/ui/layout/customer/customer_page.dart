@@ -16,6 +16,7 @@ class Customer extends StatefulWidget {
 
 class _CustomerState extends State<Customer> {
   final PageController _pageController = PageController();
+
   int _currentPage = 0;
   Membership? _membership;
   @override
@@ -129,7 +130,11 @@ class _CustomerState extends State<Customer> {
                   onPressed: () {
                     context.push(
                       '/booking',
-                      extra: {'type': 'car', 'memberInfo': _membership},
+                      extra: {
+                        'type': 'car',
+                        'memberInfo': _membership,
+                        'user': user,
+                      },
                     );
                   },
                   icon: _iconButton(
@@ -141,7 +146,11 @@ class _CustomerState extends State<Customer> {
                   onPressed: () {
                     context.push(
                       '/booking',
-                      extra: {'type': 'motobike', 'memberInfo': _membership},
+                      extra: {
+                        'type': 'motobike',
+                        'memberInfo': _membership,
+                        'user': user,
+                      },
                     );
                   },
                   icon: _iconButton(

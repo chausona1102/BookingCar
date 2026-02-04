@@ -240,7 +240,7 @@ class _PaymentState extends State<PaymentPage> {
                             color: Colors.black45,
                           ),
                         ),
-                        svgButton('assets/icons/copy.svg', 'black', () {
+                        svgButton('assets/icons/copy.svg', '', 'black', () {
                           Clipboard.setData(
                             ClipboardData(
                               text:

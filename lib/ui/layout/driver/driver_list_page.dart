@@ -47,6 +47,7 @@ class _DriverListPage extends State<DriverListPage> {
 
   @override
   Widget build(BuildContext context) {
+    final user = context.watch<AuthManager>().user;
     final manager = context.watch<DriverManager>();
     return Scaffold(
       appBar: myAppBar(context, "Đặt tài xế"),
@@ -116,7 +117,11 @@ class _DriverListPage extends State<DriverListPage> {
                     button('Đặt tài xế', 'success', () {
                       context.push(
                         '/booking',
-                        extra: {'type': 'driver', 'memberInfo': _membership},
+                        extra: {
+                          'type': 'driver',
+                          'memberInfo': _membership,
+                          'user': user,
+                        },
                       );
                     }),
                     // TextButton(
