@@ -2,6 +2,7 @@ import 'package:booking_app/models/vipdata.dart';
 import 'package:booking_app/ui/auth/customer_manager.dart';
 import 'package:booking_app/ui/layout/customer/become_driver_page.dart';
 import 'package:booking_app/ui/layout/customer/become_vip_member_page.dart';
+import 'package:booking_app/ui/layout/customer/booking_manager.dart';
 import 'package:booking_app/ui/layout/customer/booking_page.dart';
 import 'package:booking_app/ui/layout/customer/payment_page.dart';
 import 'package:booking_app/ui/layout/customer/payment_success.dart';
@@ -9,6 +10,7 @@ import 'package:booking_app/ui/layout/driver/driver_list_page.dart';
 import 'package:booking_app/ui/layout/driver/driver_manager.dart';
 import 'package:booking_app/ui/layout/driver/driver_page.dart';
 import 'package:booking_app/ui/layout/profile.dart';
+import 'package:booking_app/utils/myFunction.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:go_router/go_router.dart';
@@ -26,7 +28,6 @@ void main() async {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
@@ -35,6 +36,8 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => CustomerManager()),
         ChangeNotifierProvider(create: (_) => PaymentManager()),
         ChangeNotifierProvider(create: (_) => DriverManager()),
+        ChangeNotifierProvider(create: (_) => BookingManager()),
+        ChangeNotifierProvider(create: (_) => MyFunctions()),
       ],
       child: const AppRoot(),
     );

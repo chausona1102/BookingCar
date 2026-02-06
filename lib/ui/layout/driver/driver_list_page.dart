@@ -2,7 +2,8 @@ import 'package:booking_app/models/membership.dart';
 import 'package:booking_app/ui/auth/auth_manager.dart';
 import 'package:booking_app/ui/auth/customer_manager.dart';
 import 'package:booking_app/ui/layout/driver/driver_manager.dart';
-import 'package:booking_app/ui/shared/myappbar.dart';
+import 'package:booking_app/ui/shared/myAppBar.dart';
+import 'package:booking_app/ui/shared/snackBarLogger.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../shared/navigation_bar.dart';
@@ -115,6 +116,11 @@ class _DriverListPage extends State<DriverListPage> {
 
                     const SizedBox(width: 12),
                     button('Đặt tài xế', 'success', () {
+                      snackBarLogger(
+                        context,
+                        'Tài xế sẽ đến chậm đôi chút, quý khách thông cảm giúp rùa nhỏ ạ!',
+                        'success',
+                      );
                       context.push(
                         '/booking',
                         extra: {

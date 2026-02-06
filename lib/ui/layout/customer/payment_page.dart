@@ -1,9 +1,10 @@
+import 'package:booking_app/ui/shared/snackBarLogger.dart';
 import 'package:flutter_svg/svg.dart';
 import '../../auth/auth_manager.dart';
-import 'package:booking_app/ui/shared/svgbutton.dart';
+import 'package:booking_app/ui/shared/svgButton.dart';
 import 'package:flutter/services.dart';
 import 'package:booking_app/models/vipdata.dart';
-import 'package:booking_app/ui/shared/myappbar.dart';
+import 'package:booking_app/ui/shared/myAppBar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -91,11 +92,12 @@ class _PaymentState extends State<PaymentPage> {
               // Image.asset('assets/gifs/dancing.gif', width: 120),
               // SvgPicture.asset('assets/icons/coin.svg'),
               const SizedBox(height: 20),
-              Row(
+              Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  Image.asset('assets/images/app_icon.png', width: 200),
                   Text(
-                    'Bạn đã là thanh viên',
+                    'Bạn đã là thanh viên của rùa nhỏ',
                     style: TextStyle(
                       color: Colors.green,
                       fontSize: 20,
@@ -113,14 +115,10 @@ class _PaymentState extends State<PaymentPage> {
                   }),
                   const SizedBox(width: 10),
                   button('Nâng cấp độ thành viên', 'normal', () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Tạm thời chưa có tính năng này')),
-                      snackBarAnimationStyle: AnimationStyle(
-                        duration: Duration(milliseconds: 200),
-                        reverseDuration: Duration(milliseconds: 200),
-                        curve: Curves.easeOut,
-                        reverseCurve: Curves.easeIn,
-                      ),
+                    snackBarLogger(
+                      context,
+                      'Tính năng chưa được cập nhật',
+                      'warning',
                     );
                   }),
                 ],
@@ -254,11 +252,10 @@ class _PaymentState extends State<PaymentPage> {
                             ),
                           );
 
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Đã sao chép nội dung thanh toán'),
-                              duration: Duration(seconds: 2),
-                            ),
+                          snackBarLogger(
+                            context,
+                            'Đã sao chép nội dung thanh toán',
+                            'success',
                           );
                         }),
                       ],
@@ -287,12 +284,7 @@ class _PaymentState extends State<PaymentPage> {
                   button('Sao chép mã', 'normal', () {
                     Clipboard.setData(ClipboardData(text: payment.qrData));
 
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Đã sao chép mã'),
-                        duration: Duration(seconds: 2),
-                      ),
-                    );
+                    snackBarLogger(context, 'Đã sao chép mã!', 'success');
                   }),
                   const SizedBox(width: 20),
                   button('Thanh toán', 'success', () async {
@@ -310,9 +302,7 @@ class _PaymentState extends State<PaymentPage> {
                     if (success) {
                       context.go('/payment-success');
                     } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Thanh toán thất bại')),
-                      );
+                      snackBarLogger(context, 'Thanh toán thất bại', 'error');
                     }
                   }),
                 ],

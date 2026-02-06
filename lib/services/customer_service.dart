@@ -33,8 +33,6 @@ class CustomerService extends ChangeNotifier {
         'user': user,
       };
       final roleChange = await changeRole(user: user);
-      print('RoleChange Activing: ...');
-      print('RoleChange Active State: $roleChange');
       if (!roleChange) return false;
       final files = <http.MultipartFile>[];
       if (carimage != null) {

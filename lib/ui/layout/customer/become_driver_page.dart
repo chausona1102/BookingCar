@@ -1,4 +1,5 @@
-import 'package:booking_app/ui/shared/myappbar.dart';
+import 'package:booking_app/ui/shared/myAppBar.dart';
+import 'package:booking_app/ui/shared/snackBarLogger.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -40,17 +41,13 @@ class _BecomeDriverPage extends State<BecomeDriverPage> {
     final userId = authManager.currentUserId;
 
     if (userId == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Chưa đăng nhập')));
+      snackBarLogger(context, 'Chưa đăng nhập!', 'warning');
       context.go('/login');
       return;
     }
 
     if (_selectedTypeCar == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng chọn loại phương tiện')),
-      );
+      snackBarLogger(context, 'Vui lòng chọn loại phương tiện', 'warning');
       return;
     }
 
@@ -76,7 +73,10 @@ class _BecomeDriverPage extends State<BecomeDriverPage> {
         ),
       );
 
-      if (success) context.go('/profile');
+      if (success) {
+        snackBarLogger(context, 'Rùa nhỏ chào mừng rùa newbie!', 'success');
+        context.go('/profile');
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

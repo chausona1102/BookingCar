@@ -22,7 +22,6 @@ class _CustomerState extends State<Customer> {
   @override
   void initState() {
     super.initState();
-    print('init state');
     Future.delayed(const Duration(seconds: 3), _autoSlide);
     Future.microtask(() async {
       final authManager = context.read<AuthManager>();
@@ -81,8 +80,14 @@ class _CustomerState extends State<Customer> {
             Padding(
               padding: EdgeInsets.only(top: 20, left: 20, right: 20),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
+                  Image.asset(
+                    'assets/images/turtle_success.png',
+                    width: 70,
+                    height: 70,
+                  ),
+                  const SizedBox(width: 10),
                   Text(
                     user != null ? 'Xin chào, ${user.fullName}' : '',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -94,7 +99,16 @@ class _CustomerState extends State<Customer> {
             Padding(
               padding: EdgeInsets.only(left: 20, right: 20),
               child: GestureDetector(
-                onTap: () => {print("Dat xe")},
+                onTap: () => {
+                  context.push(
+                    '/booking',
+                    extra: {
+                      'type': 'car',
+                      'memberInfo': _membership,
+                      'user': user,
+                    },
+                  ),
+                },
                 child: Container(
                   padding: EdgeInsets.only(
                     top: 8,
@@ -108,7 +122,7 @@ class _CustomerState extends State<Customer> {
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.location_on, color: Colors.amberAccent),
+                      Icon(Icons.location_on, color: Colors.green),
                       const SizedBox(width: 10),
                       Text(
                         'Bạn muốn đi đâu nạ?',
@@ -181,7 +195,7 @@ class _CustomerState extends State<Customer> {
                 ),
               ],
             ),
-            // const Divider(color: Colors.green),
+            const Divider(color: Colors.green),
             SizedBox(
               height: 200,
               child: PageView.builder(

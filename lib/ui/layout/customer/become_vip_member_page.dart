@@ -1,8 +1,11 @@
 import 'package:booking_app/models/vipdata.dart';
 import 'package:booking_app/ui/shared/button.dart';
+import 'package:booking_app/utils/myFunction.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:booking_app/ui/shared/myappbar.dart';
+import 'package:booking_app/ui/shared/myAppBar.dart';
+import 'package:provider/provider.dart';
+import 'booking_manager.dart';
 
 class BecomeVipMemberPage extends StatefulWidget {
   const BecomeVipMemberPage({super.key});
@@ -17,6 +20,8 @@ class _BecomeVipMemberPageState extends State<BecomeVipMemberPage> {
   var _amount = 100000;
   @override
   Widget build(BuildContext context) {
+    final bookingManager = context.watch<BookingManager>();
+    final myFunctions = context.watch<MyFunctions>();
     return Scaffold(
       appBar: myAppBar(context, 'Đăng ký hội viên'),
       body: Container(
@@ -148,7 +153,7 @@ class _BecomeVipMemberPageState extends State<BecomeVipMemberPage> {
             ),
             const SizedBox(width: 10),
             Text(
-              _amount.toString() + ' đồng',
+              myFunctions.convertToVND(_amount.toString()) + ' vnđ',
               style: TextStyle(
                 fontWeight: FontWeight.w600,
                 fontSize: 20,

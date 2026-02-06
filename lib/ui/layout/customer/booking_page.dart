@@ -1,11 +1,19 @@
 import 'package:booking_app/models/membership.dart';
 import 'package:booking_app/models/user.dart';
-import 'package:booking_app/ui/shared/myappbar.dart';
-import 'package:booking_app/ui/shared/svgbuttonpro.dart';
+import 'package:booking_app/ui/shared/button.dart';
+import 'package:booking_app/ui/shared/myAppBar.dart';
+import 'package:booking_app/ui/shared/snackBarLogger.dart';
+import 'package:booking_app/ui/shared/svgButtonPro.dart';
+import 'package:booking_app/utils/myFunction.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:booking_app/ui/shared/googleMap.dart';
+import 'package:provider/provider.dart';
+import 'booking_manager.dart';
+import 'package:booking_app/models/location.dart';
 
 class BookingPage extends StatefulWidget {
   final Map<String, dynamic>? data;
@@ -16,28 +24,53 @@ class BookingPage extends StatefulWidget {
 
 class _BookingPageState extends State<BookingPage> {
   LatLng? _destination;
+  LatLng? _currentLocation;
   String? _placeNameDest = 'Vui lòng chọn địa điểm muốn đến';
+  String? _placeNameSource = 'Không tìm thấy địa chỉ của bạn';
   GoogleMapController? _mapController;
+  double? _distanceKm;
+  double? _paymentForDistance;
   late String? type;
   late Membership? memberInfo;
   late User? user;
+  late double? amount;
+  LocationModel? pickupLocation;
+  LocationModel? dropoffLocation;
   @override
   void initState() {
     super.initState();
     type = widget.data?['type'] ?? 'car';
     memberInfo = widget.data?['memberInfo'] as Membership?;
     user = widget.data?['user'];
+    _checkTracing();
+    _getCurrentLocation();
   }
 
-  Future<LatLng?> searchAddress(String address) async {
-    try {
-      final locations = await locationFromAddress(address);
-      if (locations.isNotEmpty) {
-        final loc = locations.first;
-        return LatLng(loc.latitude, loc.longitude);
-      }
-    } catch (e) {}
-    return null;
+  Future<void> _checkTracing() async {
+    final bookingManager = context.read<BookingManager>();
+    final tracing = await bookingManager.getCurrentTracing(userId: user!.id);
+
+    if (tracing != null) {
+      snackBarLogger(context, 'Bạn đang trong cuốc xe!', 'error');
+      context.push('/tracing');
+    }
+  }
+
+  Future<void> _getCurrentLocation() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      debugPrint('GPS chưa bật');
+      return;
+    }
+    final position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+    final latLng = LatLng(position.latitude, position.longitude);
+    final place = await getPlaceName(latLng);
+    setState(() {
+      _currentLocation = latLng;
+      _placeNameSource = place;
+    });
   }
 
   Future<String> getPlaceName(LatLng latLng) async {
@@ -75,12 +108,14 @@ class _BookingPageState extends State<BookingPage> {
 
   @override
   Widget build(BuildContext context) {
+    final bookingManager = context.watch<BookingManager>();
+    final myFunctions = context.watch<MyFunctions>();
     return Scaffold(
       appBar: myAppBar(context, 'Booking'),
       body: Column(
         children: [
-          _search(),
-          const SizedBox(height: 10),
+          // _search(),
+          // const SizedBox(height: 10),
           BookingMap(
             onMapCreated: (controller) {
               _mapController = controller;
@@ -90,6 +125,34 @@ class _BookingPageState extends State<BookingPage> {
                 _destination = latLng;
                 _placeNameDest = place;
               });
+            },
+            onDistanceChanged: (km) {
+              if (_currentLocation == null || _destination == null) return;
+              setState(() {
+                _distanceKm = km;
+                _paymentForDistance = bookingManager.calculatePayment(
+                  _distanceKm,
+                  type,
+                );
+                amount = _paymentForDistance;
+                pickupLocation = LocationModel(
+                  placeName: _placeNameSource!,
+                  latitude: _currentLocation!.latitude.toString(),
+                  longitude: _currentLocation!.longitude.toString(),
+                );
+                dropoffLocation = LocationModel(
+                  placeName: _placeNameDest!,
+                  latitude: _destination!.latitude.toString(),
+                  longitude: _destination!.longitude.toString(),
+                );
+              });
+              if (km < 1) {
+                snackBarLogger(
+                  context,
+                  'Đoạn đường quá ngắn. Khuyến nghị (> 1km)',
+                  'error',
+                );
+              }
             },
           ),
           const SizedBox(height: 10),
@@ -105,38 +168,67 @@ class _BookingPageState extends State<BookingPage> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _bookingContent() {
-    switch (type) {
-      case 'car':
-        return _bookingCar();
-      case 'motobike':
-        return _bookingMotoBike();
-      case 'driver':
-        return _bookingDriver();
-      default:
-        return _urlNotFound();
-    }
-  }
-
-  Widget _search() {
-    return TextField(
-      decoration: InputDecoration(
-        hintText: 'Nhập điểm đến',
-        prefixIcon: Icon(Icons.search),
+      bottomNavigationBar: BottomAppBar(
+        color: Colors.white,
+        child: Row(
+          children: [
+            Text(
+              'Tổng số tiền:',
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              _paymentForDistance == null
+                  ? '0 vnđ'
+                  : '${myFunctions.convertToVND(_paymentForDistance!.toStringAsFixed(0))} vnđ',
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 20,
+                color: Colors.green,
+              ),
+            ),
+            const Spacer(),
+            button('Xác nhận', 'success', () async {
+              if (_distanceKm == null ||
+                  _distanceKm! < 1 ||
+                  amount == null ||
+                  pickupLocation == null ||
+                  dropoffLocation == null) {
+                snackBarLogger(context, 'Vui lòng chọn điểm đến', 'warning');
+                return;
+              }
+              if (_distanceKm == null || _distanceKm! < 1) {
+                snackBarLogger(
+                  context,
+                  'Đoạn đường quá ngắn. Quý khách thông cảm giúp rùa nhỏ ạ!',
+                  'warning',
+                );
+              } else {
+                final result = await bookingManager.addBooking(
+                  userId: user!.id,
+                  price: amount!,
+                  pickupLocation: pickupLocation!,
+                  dropoffLocation: dropoffLocation!,
+                );
+                if (result) {
+                  snackBarLogger(
+                    context,
+                    'Đặt xe thành công! Chú ý điện thoại dùm rùa nhỏ ạ!',
+                    'success',
+                  );
+                  context.push('/');
+                } else {
+                  snackBarLogger(
+                    context,
+                    'Đặt xe không thành công. Vui lòng chọn điểm đến!',
+                    'error',
+                  );
+                }
+              }
+            }),
+          ],
+        ),
       ),
-      onSubmitted: (value) async {
-        final latLng = await searchAddress(value);
-        if (latLng != null) {
-          setState(() {
-            _destination = latLng;
-          });
-
-          _mapController?.animateCamera(CameraUpdate.newLatLngZoom(latLng, 16));
-        }
-      },
     );
   }
 
@@ -150,11 +242,18 @@ class _BookingPageState extends State<BookingPage> {
               'Ô tô',
               'dart45',
               type == 'car',
+              type == 'car' ? 'large' : 'medium',
               () {
                 setLocal(() {
                   type = 'car';
                 });
-                setState(() {});
+                setState(() {
+                  if (_distanceKm != null) {
+                    _paymentForDistance = context
+                        .read<BookingManager>()
+                        .calculatePayment(_distanceKm, type);
+                  }
+                });
               },
             ),
             const SizedBox(width: 10),
@@ -163,11 +262,18 @@ class _BookingPageState extends State<BookingPage> {
               'Xe máy',
               'dart45',
               type == 'motobike',
+              type == 'motobike' ? 'large' : 'medium',
               () {
                 setLocal(() {
                   type = 'motobike';
                 });
-                setState(() {});
+                setState(() {
+                  if (_distanceKm != null) {
+                    _paymentForDistance = context
+                        .read<BookingManager>()
+                        .calculatePayment(_distanceKm, type);
+                  }
+                });
               },
             ),
             const SizedBox(width: 10),
@@ -176,11 +282,23 @@ class _BookingPageState extends State<BookingPage> {
               'Tài xế',
               'dart45',
               type == 'driver',
+              type == 'driver' ? 'large' : 'medium',
               () {
                 setLocal(() {
                   type = 'driver';
                 });
-                setState(() {});
+                snackBarLogger(
+                  context,
+                  'Tài xế sẽ đến chậm đôi chút, quý khách thông cảm giúp rùa nhỏ ạ!',
+                  'success',
+                );
+                setState(() {
+                  if (_distanceKm != null) {
+                    _paymentForDistance = context
+                        .read<BookingManager>()
+                        .calculatePayment(_distanceKm, type);
+                  }
+                });
               },
             ),
           ],
@@ -189,7 +307,7 @@ class _BookingPageState extends State<BookingPage> {
     );
   }
 
-  Widget _bookingCar() {
+  Widget _bookingContent() {
     String lat = '--';
     String lng = '--';
 
@@ -236,7 +354,9 @@ class _BookingPageState extends State<BookingPage> {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                _placeNameDest.toString(),
+                _distanceKm == null
+                    ? _placeNameDest.toString()
+                    : '${_placeNameDest} (${_distanceKm!.toStringAsFixed(2)}Km)',
                 maxLines: 4,
                 style: TextStyle(
                   fontSize: 16,
@@ -251,13 +371,13 @@ class _BookingPageState extends State<BookingPage> {
     );
   }
 
-  Widget _bookingMotoBike() {
-    return Center(child: Text('Dat xe may'));
-  }
+  // Widget _bookingMotoBike() {
+  //   return Center(child: Text('Dat xe may'));
+  // }
 
-  Widget _bookingDriver() {
-    return Center(child: Text('Dat tai xe'));
-  }
+  // Widget _bookingDriver() {
+  //   return Center(child: Text('Dat tai xe'));
+  // }
 
   Widget _urlNotFound() {
     return Center();

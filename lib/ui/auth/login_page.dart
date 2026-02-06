@@ -1,3 +1,4 @@
+import 'package:booking_app/ui/shared/snackBarLogger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
@@ -29,12 +30,16 @@ class _LoginPageState extends State<LoginPage> {
     if (success) {
       final role = authManager.role;
       if (role == 'driver') {
+        snackBarLogger(context, 'Đăng nhập thành công!', 'success');
         context.go('/driver-page');
       } else if (role == 'customer') {
+        snackBarLogger(context, 'Đăng nhập thành công!', 'success');
         context.go('/');
       } else if (role == 'admin') {
+        snackBarLogger(context, 'Đăng nhập thành công!', 'success');
         context.go('/admin');
       } else {
+        snackBarLogger(context, 'Có lỗi gì đó!', 'error');
         context.go('/NotFound');
       }
     } else {

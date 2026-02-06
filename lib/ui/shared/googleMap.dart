@@ -8,8 +8,14 @@ import 'package:geocoding/geocoding.dart';
 class BookingMap extends StatefulWidget {
   final Function(LatLng, String) onSelect;
   final Function(GoogleMapController)? onMapCreated;
+  final Function(double)? onDistanceChanged;
 
-  const BookingMap({super.key, required this.onSelect, this.onMapCreated});
+  const BookingMap({
+    super.key,
+    required this.onSelect,
+    this.onMapCreated,
+    this.onDistanceChanged,
+  });
 
   @override
   State<BookingMap> createState() => _BookingMapState();
@@ -20,11 +26,24 @@ class _BookingMapState extends State<BookingMap> {
   Set<Polyline> _polylines = {};
   LatLng? _currentLocation;
   LatLng? _destination;
-
+  // double? _distanceKm;
   @override
   void initState() {
     super.initState();
     _getCurrentLocation();
+  }
+
+  double _calculatePolylineDistance(List<PointLatLng> points) {
+    double totalDistance = 0;
+    for (int i = 0; i < points.length - 1; i++) {
+      totalDistance += Geolocator.distanceBetween(
+        points[i].latitude,
+        points[i].longitude,
+        points[i + 1].latitude,
+        points[i + 1].longitude,
+      );
+    }
+    return totalDistance;
   }
 
   Future<void> _drawRoute() async {
@@ -48,18 +67,22 @@ class _BookingMapState extends State<BookingMap> {
 
     if (result.points.isEmpty) return;
 
+    final meter = _calculatePolylineDistance(result.points);
+    final km = meter / 1000;
     setState(() {
       _polylines = {
         Polyline(
           polylineId: const PolylineId('route'),
-          color: Colors.blue,
+          color: Colors.green,
           width: 5,
           points: result.points
               .map((p) => LatLng(p.latitude, p.longitude))
               .toList(),
         ),
       };
+      // _distanceKm = km;
     });
+    widget.onDistanceChanged?.call(km);
   }
 
   Future<void> _getCurrentLocation() async {
@@ -94,7 +117,7 @@ class _BookingMapState extends State<BookingMap> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 300,
+      height: 500,
       child: GoogleMap(
         initialCameraPosition: const CameraPosition(
           target: LatLng(10.762622, 106.660172),
@@ -120,9 +143,18 @@ class _BookingMapState extends State<BookingMap> {
             Marker(
               markerId: const MarkerId('current'),
               position: _currentLocation!,
+              icon: BitmapDescriptor.defaultMarkerWithHue(
+                BitmapDescriptor.hueRed,
+              ),
             ),
           if (_destination != null)
-            Marker(markerId: const MarkerId('dest'), position: _destination!),
+            Marker(
+              markerId: const MarkerId('dest'),
+              position: _destination!,
+              icon: BitmapDescriptor.defaultMarkerWithHue(
+                BitmapDescriptor.hueGreen,
+              ),
+            ),
         },
       ),
     );

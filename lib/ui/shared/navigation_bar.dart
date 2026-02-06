@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+// import 'package:provider/provider.dart';
+// import 'package:booking_app/ui/auth/auth_manager.dart';
 // import 'package:flutter/widgets.dart';
 
 class NavBar extends StatelessWidget {
   const NavBar({super.key});
-
   @override
   Widget build(BuildContext context) {
     return BottomAppBar(
@@ -20,7 +21,7 @@ class NavBar extends StatelessWidget {
               size: 26,
             ),
             onPressed: () {
-              context.push('/booking');
+              context.push('/tracking');
             },
           ),
           IconButton(

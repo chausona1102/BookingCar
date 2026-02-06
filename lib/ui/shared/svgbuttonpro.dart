@@ -6,9 +6,35 @@ Widget svgButtonPro(
   String title,
   String color,
   bool isActive,
+  String size,
   VoidCallback action,
 ) {
   final Color _color;
+  final double _paddingY;
+  final double _paddingX;
+  final double _fontSize;
+  switch (size) {
+    case 'large':
+      _paddingX = 16;
+      _paddingY = 8;
+      _fontSize = 20;
+      break;
+    case 'medium':
+      _paddingX = 10;
+      _paddingY = 5;
+      _fontSize = 18;
+      break;
+    case 'small':
+      _paddingX = 8;
+      _paddingY = 4;
+      _fontSize = 14;
+      break;
+    default:
+      _paddingX = 8;
+      _paddingY = 4;
+      _fontSize = 16;
+  }
+
   switch (color) {
     case 'light':
       _color = Colors.white;
@@ -31,7 +57,7 @@ Widget svgButtonPro(
     onTap: action,
     borderRadius: BorderRadius.circular(8),
     child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: _paddingX, vertical: _paddingY),
       decoration: BoxDecoration(
         border: Border.all(color: _borderColor, width: 1.5),
         borderRadius: BorderRadius.circular(8),
@@ -41,7 +67,7 @@ Widget svgButtonPro(
           Text(
             title,
             style: TextStyle(
-              fontSize: 16,
+              fontSize: _fontSize,
               fontWeight: FontWeight.w500,
               color: _textColor,
             ),
