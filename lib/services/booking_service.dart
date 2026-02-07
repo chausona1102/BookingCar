@@ -49,10 +49,22 @@ class BookingService extends ChangeNotifier {
       final record = await pb
           .collection('bookings')
           .getFirstListItem('user = "$userId"');
-      logger.i(record.data);
+      // logger.i(record.data);
       return BookingModel.fromRecord(record);
     } catch (e) {
       logger.e('An error occured: ', error: e);
+      return null;
+    }
+  }
+
+  Future<LocationModel?> getLocationById(String id) async {
+    try {
+      final record = await pb.collection('locations').getOne(id);
+      // logger.i(record.data);
+      return LocationModel.fromRecord(record);
+    } catch (e, s) {
+      logger.e('An error occured: ', error: e, stackTrace: s);
+      return null;
     }
   }
 }

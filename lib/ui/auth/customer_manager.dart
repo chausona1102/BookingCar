@@ -10,12 +10,14 @@ class CustomerManager extends ChangeNotifier {
     required String typecar,
     required String user,
     File? carimage,
+    required String carnumber,
   }) async {
     return await _customerService.addDriver(
       licensenumber: licensenumber,
       typecar: typecar,
       user: user,
       carimage: carimage,
+      carnumber: carnumber,
     );
   }
 

@@ -7,6 +7,7 @@ class Driver {
   final String typecar;
   final User user;
   final String carimage;
+  final String carnumber;
 
   Driver({
     required this.id,
@@ -14,6 +15,7 @@ class Driver {
     required this.licensenumber,
     required this.user,
     required this.carimage,
+    required this.carnumber,
   });
 
   factory Driver.fromRecord(RecordModel r) {
@@ -29,6 +31,7 @@ class Driver {
       licensenumber: r.getStringValue('licensenumber'),
       user: User.fromJson(expanded.first.toJson()),
       carimage: r.getStringValue('carimage'),
+      carnumber: r.getStringValue('carnumber'),
     );
   }
 }

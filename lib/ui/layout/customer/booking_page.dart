@@ -14,6 +14,7 @@ import 'package:booking_app/ui/shared/googleMap.dart';
 import 'package:provider/provider.dart';
 import 'booking_manager.dart';
 import 'package:booking_app/models/location.dart';
+import '../../notifications/notification_manager.dart';
 
 class BookingPage extends StatefulWidget {
   final Map<String, dynamic>? data;
@@ -33,6 +34,7 @@ class _BookingPageState extends State<BookingPage> {
   late String? type;
   late Membership? memberInfo;
   late User? user;
+  late String userId;
   late double? amount;
   LocationModel? pickupLocation;
   LocationModel? dropoffLocation;
@@ -42,17 +44,18 @@ class _BookingPageState extends State<BookingPage> {
     type = widget.data?['type'] ?? 'car';
     memberInfo = widget.data?['memberInfo'] as Membership?;
     user = widget.data?['user'];
-    _checkTracing();
+    userId = user!.id;
     _getCurrentLocation();
+    _checkTracing(userId);
   }
 
-  Future<void> _checkTracing() async {
+  Future<void> _checkTracing(String userId) async {
     final bookingManager = context.read<BookingManager>();
-    final tracing = await bookingManager.getCurrentTracing(userId: user!.id);
+    final tracing = await bookingManager.getCurrentTracing(userId: userId);
 
     if (tracing != null) {
       snackBarLogger(context, 'Bạn đang trong cuốc xe!', 'error');
-      context.push('/tracing');
+      context.push('/');
     }
   }
 
@@ -92,7 +95,7 @@ class _BookingPageState extends State<BookingPage> {
         p.subLocality,
         p.locality,
         p.administrativeArea,
-      ].where((e) => e != null && e!.isNotEmpty).toList();
+      ].where((e) => e != null && e.isNotEmpty).toList();
 
       if (parts.isEmpty) {
         return '(${latLng.latitude.toStringAsFixed(4)}, '
@@ -110,6 +113,7 @@ class _BookingPageState extends State<BookingPage> {
   Widget build(BuildContext context) {
     final bookingManager = context.watch<BookingManager>();
     final myFunctions = context.watch<MyFunctions>();
+    final notisManager = context.watch<NotificationManager>();
     return Scaffold(
       appBar: myAppBar(context, 'Booking'),
       body: Column(
@@ -189,6 +193,12 @@ class _BookingPageState extends State<BookingPage> {
             ),
             const Spacer(),
             button('Xác nhận', 'success', () async {
+              notisManager.addNotification(
+                'Thông báo từ hệ thống',
+                'success',
+                'Đặt xe thành công',
+                userId,
+              );
               if (_distanceKm == null ||
                   _distanceKm! < 1 ||
                   amount == null ||

@@ -66,82 +66,86 @@ class _DriverListPage extends State<DriverListPage> {
             } else {
               typeCar = 'Xe máy';
             }
-            return ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                color: Colors.white,
-                child: Row(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.network(
-                        driver.user.avatarUrl!,
-                        width: 70,
-                        height: 70,
-                        fit: BoxFit.cover,
+
+            return Padding(
+              padding: EdgeInsetsGeometry.only(bottom: 5),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  color: Colors.white,
+                  child: Row(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          driver.user.avatarUrl!,
+                          width: 70,
+                          height: 70,
+                          fit: BoxFit.cover,
+                        ),
                       ),
-                    ),
 
-                    const SizedBox(width: 12),
+                      const SizedBox(width: 12),
 
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            driver.user.fullName,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 16,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              driver.user.fullName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                              ),
                             ),
-                          ),
-                          Text(
-                            'Loại xe: $typeCar',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(color: Colors.black45),
-                          ),
-                          Text(
-                            'Số hiệu bằng lái: $licenseNumber',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(color: Colors.black45),
-                          ),
-                        ],
+                            Text(
+                              'Loại xe: $typeCar',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(color: Colors.black45),
+                            ),
+                            Text(
+                              'Số hiệu bằng lái: $licenseNumber',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(color: Colors.black45),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
 
-                    const SizedBox(width: 12),
-                    button('Đặt tài xế', 'success', () {
-                      snackBarLogger(
-                        context,
-                        'Tài xế sẽ đến chậm đôi chút, quý khách thông cảm giúp rùa nhỏ ạ!',
-                        'success',
-                      );
-                      context.push(
-                        '/booking',
-                        extra: {
-                          'type': 'driver',
-                          'memberInfo': _membership,
-                          'user': user,
-                        },
-                      );
-                    }),
-                    // TextButton(
-                    //   onPressed: () {},
-                    //   style: TextButton.styleFrom(
-                    //     foregroundColor: Colors.green,
-                    //     shape: RoundedRectangleBorder(
-                    //       borderRadius: BorderRadius.circular(8),
-                    //     ),
-                    //     side: const BorderSide(color: Colors.green),
-                    //   ),
-                    //   child: const Text('Đặt tài xế'),
-                    // ),
-                  ],
+                      const SizedBox(width: 12),
+                      button('Đặt tài xế', 'success', () {
+                        snackBarLogger(
+                          context,
+                          'Tài xế sẽ đến chậm đôi chút, quý khách thông cảm giúp rùa nhỏ ạ!',
+                          'success',
+                        );
+                        context.push(
+                          '/booking',
+                          extra: {
+                            'type': 'driver',
+                            'memberInfo': _membership,
+                            'user': user,
+                          },
+                        );
+                      }),
+                      // TextButton(
+                      //   onPressed: () {},
+                      //   style: TextButton.styleFrom(
+                      //     foregroundColor: Colors.green,
+                      //     shape: RoundedRectangleBorder(
+                      //       borderRadius: BorderRadius.circular(8),
+                      //     ),
+                      //     side: const BorderSide(color: Colors.green),
+                      //   ),
+                      //   child: const Text('Đặt tài xế'),
+                      // ),
+                    ],
+                  ),
                 ),
               ),
             );

@@ -21,6 +21,7 @@ class BecomeDriverPage extends StatefulWidget {
 
 class _BecomeDriverPage extends State<BecomeDriverPage> {
   final _licensenumber = TextEditingController();
+  final _carnumber = TextEditingController();
 
   TypeCar? _selectedTypeCar;
 
@@ -59,6 +60,7 @@ class _BecomeDriverPage extends State<BecomeDriverPage> {
         typecar: _selectedTypeCar!.name,
         user: userId,
         carimage: _carimage,
+        carnumber: _carnumber.text.trim(),
       );
       // print(_licensenumber.text.trim());
       // print(_selectedTypeCar!.name);
@@ -110,7 +112,10 @@ class _BecomeDriverPage extends State<BecomeDriverPage> {
                   decoration: const InputDecoration(
                     labelText: 'Số hiệu bằng lái',
                     border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.email, color: Colors.green),
+                    prefixIcon: Icon(
+                      Icons.card_membership,
+                      color: Colors.green,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -135,7 +140,15 @@ class _BecomeDriverPage extends State<BecomeDriverPage> {
                     });
                   },
                 ),
-                // Them enum car ở đây!
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _carnumber,
+                  decoration: const InputDecoration(
+                    labelText: 'Biển số xe (67-F1 58113)',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.numbers, color: Colors.green),
+                  ),
+                ),
                 const SizedBox(height: 16),
                 // mật khẩu
                 GestureDetector(

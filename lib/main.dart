@@ -6,6 +6,7 @@ import 'package:booking_app/ui/layout/customer/booking_manager.dart';
 import 'package:booking_app/ui/layout/customer/booking_page.dart';
 import 'package:booking_app/ui/layout/customer/payment_page.dart';
 import 'package:booking_app/ui/layout/customer/payment_success.dart';
+import 'package:booking_app/ui/layout/customer/trip_tracing_page.dart';
 import 'package:booking_app/ui/layout/driver/driver_list_page.dart';
 import 'package:booking_app/ui/layout/driver/driver_manager.dart';
 import 'package:booking_app/ui/layout/driver/driver_page.dart';
@@ -20,6 +21,8 @@ import './ui/layout/customer/customer_page.dart';
 import './ui/auth/auth_manager.dart';
 import 'ui/auth/register.dart';
 import 'package:booking_app/ui/layout/customer/payment_manager.dart';
+import './ui/notifications/notification_manager.dart';
+import './ui/notifications/notification_page.dart';
 
 void main() async {
   await dotenv.load();
@@ -38,6 +41,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => DriverManager()),
         ChangeNotifierProvider(create: (_) => BookingManager()),
         ChangeNotifierProvider(create: (_) => MyFunctions()),
+        ChangeNotifierProvider(create: (_) => NotificationManager()),
       ],
       child: const AppRoot(),
     );
@@ -116,10 +120,22 @@ class _AppRootState extends State<AppRoot> {
           },
         ),
         GoRoute(
+          path: '/notifications',
+          builder: (_, __) {
+            return NotificationPage();
+          },
+        ),
+        GoRoute(
           path: '/booking',
           builder: (context, state) {
             final data = state.extra as Map<String, dynamic>;
             return BookingPage(data: data);
+          },
+        ),
+        GoRoute(
+          path: '/trip-tracing',
+          builder: (_, __) {
+            return TripTracingPage();
           },
         ),
       ],

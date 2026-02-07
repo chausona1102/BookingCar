@@ -1,3 +1,5 @@
+import 'package:pocketbase/pocketbase.dart';
+
 class LocationModel {
   final String? id;
   final String placeName;
@@ -24,5 +26,13 @@ class LocationModel {
       'latitude': latitude,
       'longitude': longitude,
     };
+  }
+
+  factory LocationModel.fromRecord(RecordModel r) {
+    return LocationModel(
+      placeName: (r.data['placename']).toString(),
+      latitude: (r.data['latitude']).toString(),
+      longitude: (r.data['longitude']).toString(),
+    );
   }
 }

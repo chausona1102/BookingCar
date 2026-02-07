@@ -35,7 +35,6 @@ class _CustomerState extends State<Customer> {
             setState(() {
               _membership = record;
             });
-            print(record);
           }
         } catch (e) {
           print('Lỗi $e');
@@ -173,7 +172,7 @@ class _CustomerState extends State<Customer> {
                   ),
                 ),
                 IconButton(
-                  onPressed: () => {print('Theo doi dat xe')},
+                  onPressed: () => context.push('/trip-tracing'),
                   icon: _iconButton(
                     imagePath: 'assets/images/car_driving_removebg.png',
                     text: 'Theo dõi',

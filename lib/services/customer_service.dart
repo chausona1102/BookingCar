@@ -22,6 +22,7 @@ class CustomerService extends ChangeNotifier {
     required String licensenumber,
     required String typecar,
     required String user,
+    required String carnumber,
     File? carimage,
   }) async {
     // print(pb.authStore.isValid);
@@ -31,6 +32,7 @@ class CustomerService extends ChangeNotifier {
         'licensenumber': licensenumber,
         'typecar': typecar,
         'user': user,
+        'carnumber': carnumber,
       };
       final roleChange = await changeRole(user: user);
       if (!roleChange) return false;
