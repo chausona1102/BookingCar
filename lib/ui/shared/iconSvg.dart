@@ -16,6 +16,9 @@ Widget svgIcon(String icon, String color) {
     case 'green':
       _color = Colors.green;
       break;
+    case 'red':
+      _color = Colors.red;
+      break;
     default:
       _color = Colors.black;
   }

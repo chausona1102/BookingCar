@@ -80,16 +80,18 @@ class Profile extends StatelessWidget {
                       icon: Icons.phone,
                       text: user?.phoneNumber ?? 'Chưa có số điện thoại',
                     ),
-                    const Divider(),
-
-                    TextButton(
-                      onPressed: () => {context.push('/register-driver')},
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        backgroundColor: Colors.green,
+                    if (user.role != 'driver') ...[
+                      const Divider(),
+                      TextButton(
+                        onPressed: () => {context.push('/register-driver')},
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          backgroundColor: Colors.green,
+                        ),
+                        child: Text('Đăng ký làm tài xế'),
                       ),
-                      child: Text('Đăng ký làm tài xế'),
-                    ),
+                    ],
+                    // if(user.role == 'driver') ...[]
                   ],
                 ),
               ),

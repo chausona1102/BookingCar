@@ -22,6 +22,9 @@ Widget button(String title, type, action) {
     case 'light':
       fill = Colors.white;
       color = Colors.white;
+    default:
+      fill = Colors.green;
+      color = Colors.green;
   }
   return TextButton(
     onPressed: action,

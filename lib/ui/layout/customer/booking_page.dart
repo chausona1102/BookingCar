@@ -15,6 +15,7 @@ import 'package:provider/provider.dart';
 import 'booking_manager.dart';
 import 'package:booking_app/models/location.dart';
 import '../../notifications/notification_manager.dart';
+import 'package:logger/logger.dart';
 
 class BookingPage extends StatefulWidget {
   final Map<String, dynamic>? data;
@@ -36,13 +37,21 @@ class _BookingPageState extends State<BookingPage> {
   late User? user;
   late String userId;
   late double? amount;
+  double disCount = 1;
   LocationModel? pickupLocation;
   LocationModel? dropoffLocation;
+  final logger = Logger();
   @override
   void initState() {
     super.initState();
     type = widget.data?['type'] ?? 'car';
     memberInfo = widget.data?['memberInfo'] as Membership?;
+    if (memberInfo != null) {
+      disCount = (memberInfo!.discountPercent) / 100;
+      logger.i(disCount);
+    } else {
+      disCount = 1;
+    }
     user = widget.data?['user'];
     userId = user!.id;
     _getCurrentLocation();
@@ -52,7 +61,6 @@ class _BookingPageState extends State<BookingPage> {
   Future<void> _checkTracing(String userId) async {
     final bookingManager = context.read<BookingManager>();
     final tracing = await bookingManager.getCurrentTracing(userId: userId);
-
     if (tracing != null) {
       snackBarLogger(context, 'Bạn đang trong cuốc xe!', 'error');
       context.push('/');
@@ -112,8 +120,9 @@ class _BookingPageState extends State<BookingPage> {
   @override
   Widget build(BuildContext context) {
     final bookingManager = context.watch<BookingManager>();
-    final myFunctions = context.watch<MyFunctions>();
     final notisManager = context.watch<NotificationManager>();
+    final myFunctions = context.watch<MyFunctions>();
+
     return Scaffold(
       appBar: myAppBar(context, 'Booking'),
       body: Column(
@@ -134,10 +143,19 @@ class _BookingPageState extends State<BookingPage> {
               if (_currentLocation == null || _destination == null) return;
               setState(() {
                 _distanceKm = km;
-                _paymentForDistance = bookingManager.calculatePayment(
-                  _distanceKm,
-                  type,
-                );
+                if (memberInfo != null && memberInfo!.discountPercent > 0) {
+                  _paymentForDistance = bookingManager
+                      .calculatePaymentWithDisCount(
+                        _distanceKm,
+                        type,
+                        disCount,
+                      );
+                } else {
+                  _paymentForDistance = bookingManager.calculatePayment(
+                    _distanceKm,
+                    type,
+                  );
+                }
                 amount = _paymentForDistance;
                 pickupLocation = LocationModel(
                   placeName: _placeNameSource!,
@@ -166,13 +184,26 @@ class _BookingPageState extends State<BookingPage> {
               children: [
                 _selecting(),
                 const SizedBox(height: 10),
-                _bookingContent(),
+                Card(
+                  elevation: 6,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Padding(
+                    padding: EdgeInsetsGeometry.symmetric(
+                      horizontal: 10,
+                      vertical: 15,
+                    ),
+                    child: _bookingContent(),
+                  ),
+                ),
               ],
             ),
           ),
         ],
       ),
       bottomNavigationBar: BottomAppBar(
+        height: 100,
         color: Colors.white,
         child: Row(
           children: [
@@ -181,15 +212,33 @@ class _BookingPageState extends State<BookingPage> {
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
             ),
             const SizedBox(width: 10),
-            Text(
-              _paymentForDistance == null
-                  ? '0 vnđ'
-                  : '${myFunctions.convertToVND(_paymentForDistance!.toStringAsFixed(0))} vnđ',
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 20,
-                color: Colors.green,
-              ),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (memberInfo != null && memberInfo!.discountPercent > 0) ...[
+                  Text(
+                    _paymentForDistance == null
+                        ? '0 vnđ'
+                        : '${myFunctions.convertToVND((_paymentForDistance! / (1 - disCount)).toStringAsFixed(0))} vnđ',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                      color: Colors.red,
+                      decoration: TextDecoration.lineThrough,
+                    ),
+                  ),
+                ],
+                Text(
+                  _paymentForDistance == null
+                      ? '0 vnđ'
+                      : '${myFunctions.convertToVND(_paymentForDistance!.toStringAsFixed(0))} vnđ',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 20,
+                    color: Colors.green,
+                  ),
+                ),
+              ],
             ),
             const Spacer(),
             button('Xác nhận', 'success', () async {
@@ -219,6 +268,7 @@ class _BookingPageState extends State<BookingPage> {
                   price: amount!,
                   pickupLocation: pickupLocation!,
                   dropoffLocation: dropoffLocation!,
+                  type: type!,
                 );
                 if (result) {
                   snackBarLogger(
@@ -259,9 +309,19 @@ class _BookingPageState extends State<BookingPage> {
                 });
                 setState(() {
                   if (_distanceKm != null) {
-                    _paymentForDistance = context
-                        .read<BookingManager>()
-                        .calculatePayment(_distanceKm, type);
+                    if (memberInfo != null && memberInfo!.discountPercent > 0) {
+                      _paymentForDistance = context
+                          .read<BookingManager>()
+                          .calculatePaymentWithDisCount(
+                            _distanceKm,
+                            type,
+                            disCount,
+                          );
+                    } else {
+                      _paymentForDistance = context
+                          .read<BookingManager>()
+                          .calculatePayment(_distanceKm, type);
+                    }
                   }
                 });
               },
@@ -279,9 +339,19 @@ class _BookingPageState extends State<BookingPage> {
                 });
                 setState(() {
                   if (_distanceKm != null) {
-                    _paymentForDistance = context
-                        .read<BookingManager>()
-                        .calculatePayment(_distanceKm, type);
+                    if (memberInfo != null && memberInfo!.discountPercent > 0) {
+                      _paymentForDistance = context
+                          .read<BookingManager>()
+                          .calculatePaymentWithDisCount(
+                            _distanceKm,
+                            type,
+                            disCount,
+                          );
+                    } else {
+                      _paymentForDistance = context
+                          .read<BookingManager>()
+                          .calculatePayment(_distanceKm, type);
+                    }
                   }
                 });
               },
@@ -304,9 +374,19 @@ class _BookingPageState extends State<BookingPage> {
                 );
                 setState(() {
                   if (_distanceKm != null) {
-                    _paymentForDistance = context
-                        .read<BookingManager>()
-                        .calculatePayment(_distanceKm, type);
+                    if (memberInfo != null && memberInfo!.discountPercent > 0) {
+                      _paymentForDistance = context
+                          .read<BookingManager>()
+                          .calculatePaymentWithDisCount(
+                            _distanceKm,
+                            type,
+                            disCount,
+                          );
+                    } else {
+                      _paymentForDistance = context
+                          .read<BookingManager>()
+                          .calculatePayment(_distanceKm, type);
+                    }
                   }
                 });
               },
@@ -320,6 +400,7 @@ class _BookingPageState extends State<BookingPage> {
   Widget _bookingContent() {
     String lat = '--';
     String lng = '--';
+    final myFunctions = context.watch<MyFunctions>();
 
     if (_destination != null) {
       lat = _destination!.latitude.toStringAsFixed(2);
@@ -328,6 +409,13 @@ class _BookingPageState extends State<BookingPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Center(
+          child: const Text(
+            'Thông tin đặt xe',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+          ),
+        ),
+        const SizedBox(height: 10),
         Row(
           children: [
             Text(
@@ -367,7 +455,8 @@ class _BookingPageState extends State<BookingPage> {
                 _distanceKm == null
                     ? _placeNameDest.toString()
                     : '${_placeNameDest} (${_distanceKm!.toStringAsFixed(2)}Km)',
-                maxLines: 4,
+                maxLines: 3,
+                overflow: TextOverflow.clip,
                 style: TextStyle(
                   fontSize: 16,
                   color: Colors.black45,
@@ -377,6 +466,62 @@ class _BookingPageState extends State<BookingPage> {
             ),
           ],
         ),
+        const SizedBox(height: 10),
+        if (memberInfo != null &&
+            memberInfo!.discountPercent > 0 &&
+            !memberInfo!.isExpired) ...[
+          Row(
+            children: [
+              Text(
+                'Cấp độ thành viên: ',
+                maxLines: 4,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.black,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  myFunctions.planRevert(memberInfo!.plan),
+                  maxLines: 4,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.black45,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 5),
+          Row(
+            children: [
+              Text(
+                'Mức ưu đãi: ',
+                maxLines: 4,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.black,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  '${memberInfo!.discountPercent.toString()}%',
+                  maxLines: 4,
+                  style: TextStyle(
+                    fontSize: 20,
+                    color: Colors.green,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ],
     );
   }

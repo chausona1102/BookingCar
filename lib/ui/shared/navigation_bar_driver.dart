@@ -3,8 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../notifications/notification_manager.dart';
 
-class NavBar extends StatelessWidget {
-  const NavBar({super.key});
+class DriverNavBar extends StatelessWidget {
+  const DriverNavBar({super.key});
   @override
   Widget build(BuildContext context) {
     final notiCount = context.watch<NotificationManager>().unreadCount;
@@ -21,7 +21,7 @@ class NavBar extends StatelessWidget {
               size: 26,
             ),
             onPressed: () {
-              context.push('/trip-tracing');
+              context.push('/bookings-request');
             },
           ),
           IconButton(

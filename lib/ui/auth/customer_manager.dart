@@ -5,14 +5,14 @@ import '../../services/customer_service.dart';
 
 class CustomerManager extends ChangeNotifier {
   final CustomerService _customerService = CustomerService();
-  Future<bool> addDriver({
+  Future<bool> addDriverRequest({
     required String licensenumber,
     required String typecar,
     required String user,
     File? carimage,
     required String carnumber,
   }) async {
-    return await _customerService.addDriver(
+    return await _customerService.addDriverRequest(
       licensenumber: licensenumber,
       typecar: typecar,
       user: user,

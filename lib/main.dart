@@ -1,26 +1,28 @@
-import 'package:booking_app/models/vipdata.dart';
-import 'package:booking_app/ui/auth/customer_manager.dart';
+import 'package:booking_app/ui/layout/customer/payment_manager.dart';
 import 'package:booking_app/ui/layout/customer/become_driver_page.dart';
 import 'package:booking_app/ui/layout/customer/become_vip_member_page.dart';
 import 'package:booking_app/ui/layout/customer/booking_manager.dart';
-import 'package:booking_app/ui/layout/customer/booking_page.dart';
-import 'package:booking_app/ui/layout/customer/payment_page.dart';
 import 'package:booking_app/ui/layout/customer/payment_success.dart';
 import 'package:booking_app/ui/layout/customer/trip_tracing_page.dart';
+import 'package:booking_app/ui/layout/driver/bookings_request_page.dart';
 import 'package:booking_app/ui/layout/driver/driver_list_page.dart';
 import 'package:booking_app/ui/layout/driver/driver_manager.dart';
+import 'package:booking_app/ui/layout/customer/booking_page.dart';
+import 'package:booking_app/ui/layout/customer/history_page.dart';
+import 'package:booking_app/ui/layout/customer/payment_page.dart';
 import 'package:booking_app/ui/layout/driver/driver_page.dart';
+import 'package:booking_app/ui/auth/customer_manager.dart';
 import 'package:booking_app/ui/layout/profile.dart';
 import 'package:booking_app/utils/myFunction.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:booking_app/models/vipdata.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter/material.dart';
 import './ui/auth/login_page.dart';
 import './ui/layout/customer/customer_page.dart';
 import './ui/auth/auth_manager.dart';
 import 'ui/auth/register.dart';
-import 'package:booking_app/ui/layout/customer/payment_manager.dart';
 import './ui/notifications/notification_manager.dart';
 import './ui/notifications/notification_page.dart';
 
@@ -57,7 +59,7 @@ class AppRoot extends StatefulWidget {
 
 class _AppRootState extends State<AppRoot> {
   late final GoRouter _router;
-
+  // late String? role = 'user';
   @override
   void initState() {
     super.initState();
@@ -69,8 +71,8 @@ class _AppRootState extends State<AppRoot> {
       redirect: (context, state) {
         final auth = context.read<AuthManager>();
         final loggedIn = auth.isLoggedIn;
-        final role = auth.user?.role;
-
+        final _role = auth.user?.role;
+        // role = _role;
         final loggingIn = state.matchedLocation == '/login';
         final registering = state.matchedLocation == '/register';
 
@@ -79,17 +81,17 @@ class _AppRootState extends State<AppRoot> {
         }
 
         if (loggedIn && (loggingIn || registering)) {
-          return role == 'drivers' ? '/driver-page' : '/';
+          return _role == 'driver' ? '/driver-page' : '/';
         }
 
-        if (loggedIn && role == 'drivers' && state.matchedLocation == '/') {
+        if (loggedIn && _role == 'driver' && state.matchedLocation == '/') {
           return '/driver-page';
         }
 
         return null;
       },
       routes: [
-        GoRoute(path: '/', builder: (_, __) => const Customer()),
+        GoRoute(path: '/', builder: (_, __) => Customer()),
         GoRoute(path: '/login', builder: (_, __) => const LoginPage()),
         GoRoute(path: '/register', builder: (_, __) => const Register()),
         GoRoute(path: '/profile', builder: (_, __) => const Profile()),
@@ -136,6 +138,18 @@ class _AppRootState extends State<AppRoot> {
           path: '/trip-tracing',
           builder: (_, __) {
             return TripTracingPage();
+          },
+        ),
+        GoRoute(
+          path: '/history',
+          builder: (_, __) {
+            return HistoryPage();
+          },
+        ),
+        GoRoute(
+          path: '/bookings-request',
+          builder: (_, __) {
+            return BookingsRequestPage();
           },
         ),
       ],

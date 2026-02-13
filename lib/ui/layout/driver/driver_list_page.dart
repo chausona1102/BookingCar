@@ -54,13 +54,13 @@ class _DriverListPage extends State<DriverListPage> {
       appBar: myAppBar(context, "Đặt tài xế"),
       backgroundColor: Colors.green.shade50,
       body: Padding(
-        padding: EdgeInsetsGeometry.symmetric(horizontal: 15, vertical: 20),
+        padding: EdgeInsetsGeometry.symmetric(horizontal: 5, vertical: 5),
         child: ListView.builder(
           itemCount: manager.drivers.length,
           itemBuilder: (context, index) {
             final driver = manager.drivers[index];
             var typeCar = 'Xe hơi';
-            var licenseNumber = driver.licensenumber ?? 'Chưa có bằng lái';
+            var carNumber = driver.carnumber;
             if (driver.typecar == 'car') {
               typeCar = 'Xe hơi';
             } else {
@@ -68,7 +68,7 @@ class _DriverListPage extends State<DriverListPage> {
             }
 
             return Padding(
-              padding: EdgeInsetsGeometry.only(bottom: 5),
+              padding: EdgeInsetsGeometry.only(top: 5, bottom: 5),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: Container(
@@ -108,7 +108,7 @@ class _DriverListPage extends State<DriverListPage> {
                               style: const TextStyle(color: Colors.black45),
                             ),
                             Text(
-                              'Số hiệu bằng lái: $licenseNumber',
+                              'Biển số: $carNumber',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(color: Colors.black45),

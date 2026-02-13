@@ -16,6 +16,9 @@ Widget svgButton(String icon, String title, String color, VoidCallback action) {
     case 'green':
       _color = Colors.green;
       break;
+    case 'red':
+      _color = Colors.red;
+      break;
     default:
       _color = Colors.black;
   }

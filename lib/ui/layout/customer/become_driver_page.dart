@@ -55,7 +55,7 @@ class _BecomeDriverPage extends State<BecomeDriverPage> {
     setState(() => _isLoading = true);
 
     try {
-      final success = await context.read<CustomerManager>().addDriver(
+      final success = await context.read<CustomerManager>().addDriverRequest(
         licensenumber: _licensenumber.text.trim(),
         typecar: _selectedTypeCar!.name,
         user: userId,

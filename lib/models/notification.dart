@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 class NotificationApp {
   final int? id;
   final String title;
@@ -13,4 +15,15 @@ class NotificationApp {
     required this.message,
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
+  String get timeFormatted {
+    return DateFormat('dd/MM/yyyy HH:mm').format(createdAt.toLocal());
+  }
+
+  String get timeDate {
+    return DateFormat('dd/MM/yyyy').format(createdAt.toLocal());
+  }
+
+  String get timeHour {
+    return DateFormat('HH:mm').format(createdAt.toLocal());
+  }
 }

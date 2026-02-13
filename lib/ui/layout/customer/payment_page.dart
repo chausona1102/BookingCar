@@ -1,4 +1,5 @@
 import 'package:booking_app/ui/shared/snackBarLogger.dart';
+import 'package:booking_app/utils/myFunction.dart';
 import 'package:flutter_svg/svg.dart';
 import '../../auth/auth_manager.dart';
 import 'package:booking_app/ui/shared/svgButton.dart';
@@ -29,7 +30,6 @@ class _PaymentState extends State<PaymentPage> {
   bool _isMemberShips = false;
   String? plan;
   String? discountPercent;
-
   @override
   @override
   void initState() {
@@ -76,6 +76,7 @@ class _PaymentState extends State<PaymentPage> {
   @override
   Widget build(BuildContext context) {
     final payment = context.watch<PaymentManager>();
+    final myFunctions = context.watch<MyFunctions>();
     if (!payment.isReady) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
@@ -218,7 +219,9 @@ class _PaymentState extends State<PaymentPage> {
                       ),
                     ),
                     Text(
-                      'Số tiền: ' + payment.amount.toString() + 'VND',
+                      'Số tiền: ' +
+                          myFunctions.convertToVND(payment.amount.toString()) +
+                          'VND',
                       // plan + " - " + amount.toString(),
                       style: TextStyle(
                         fontSize: 16,

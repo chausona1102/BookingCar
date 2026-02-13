@@ -36,134 +36,139 @@ class _NotificationPageState extends State<NotificationPage> {
     print(myNotifications);
     return Scaffold(
       appBar: myAppBar(context, 'Thông báo'),
+      backgroundColor: Colors.green.shade50,
       body: myNotifications.isEmpty
           ? const Center(child: Text('Trống'))
-          : ListView.builder(
-              itemCount: myNotifications.length,
-              itemBuilder: (context, index) {
-                final n = myNotifications[index];
-                final title = n.title;
-                final message = n.message;
-                final type = n.type;
-                final id = n.id;
-                final time = n.createdAt;
-                var fileName;
-                switch (type) {
-                  case 'success':
-                    fileName = 'turtle_success.png';
-                    break;
-                  case 'warning':
-                    fileName = 'turtle_warning.png';
-                    break;
-                  case 'error':
-                    fileName = 'turtle_error.png';
-                    break;
-                  default:
-                    fileName = 'turtle_success.png';
-                }
-                return Dismissible(
-                  key: ValueKey(id),
-                  background: Container(
-                    color: Theme.of(context).colorScheme.error,
-                    alignment: Alignment.centerRight,
-                    padding: const EdgeInsets.only(right: 20),
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: 15,
-                      vertical: 4,
-                    ),
-                    child: const Icon(
-                      Icons.delete_forever,
-                      color: Colors.white,
-                      size: 40,
-                    ),
-                  ),
-                  direction: DismissDirection.endToStart,
-                  confirmDismiss: (direction) async {
-                    return await showDialog(
-                      context: context,
-                      builder: (ctx) => AlertDialog(
-                        title: const Text('Xóa thông báo'),
-                        content: const Text(
-                          'Bạn có chắc chắn xóa thông báo này không?',
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.of(ctx).pop(false),
-                            child: const Text('Không'),
-                          ),
-                          TextButton(
-                            onPressed: () => Navigator.of(ctx).pop(true),
-                            child: const Text('Có'),
-                          ),
-                        ],
+          : Padding(
+              padding: EdgeInsetsGeometry.symmetric(horizontal: 5, vertical: 5),
+              child: ListView.builder(
+                itemCount: myNotifications.length,
+                itemBuilder: (context, index) {
+                  final n = myNotifications[index];
+                  final title = n.title;
+                  final message = n.message;
+                  final type = n.type;
+                  final id = n.id;
+                  final date = n.timeDate;
+                  final hour = n.timeHour;
+                  var fileName;
+                  switch (type) {
+                    case 'success':
+                      fileName = 'turtle_success.png';
+                      break;
+                    case 'warning':
+                      fileName = 'turtle_warning.png';
+                      break;
+                    case 'error':
+                      fileName = 'turtle_error.png';
+                      break;
+                    default:
+                      fileName = 'turtle_success.png';
+                  }
+                  return Dismissible(
+                    key: ValueKey(id),
+                    background: Container(
+                      color: Theme.of(context).colorScheme.error,
+                      alignment: Alignment.centerRight,
+                      padding: const EdgeInsets.only(right: 20),
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 5,
+                        vertical: 5,
                       ),
-                    );
-                  },
-                  onDismissed: (direction) {
-                    notificationManager.removeNotificationById(
-                      id!,
-                      currentUserId,
-                    );
-                  },
-                  child: Padding(
-                    padding: EdgeInsetsGeometry.only(top: 5, bottom: 5),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
+                      child: const Icon(
+                        Icons.delete_forever,
                         color: Colors.white,
-                        child: Row(
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.asset(
-                                'assets/images/$fileName',
-                                width: 70,
-                                fit: BoxFit.cover,
-                              ),
+                        size: 40,
+                      ),
+                    ),
+                    direction: DismissDirection.endToStart,
+                    confirmDismiss: (direction) async {
+                      return await showDialog(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: const Text('Xóa thông báo'),
+                          content: const Text(
+                            'Bạn có chắc chắn xóa thông báo này không?',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(ctx).pop(false),
+                              child: const Text('Không'),
                             ),
-
-                            const SizedBox(width: 12),
-
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    title,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                  Text(
-                                    message,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      color: Colors.black45,
-                                    ),
-                                  ),
-                                  Text(
-                                    time.toString(),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      color: Colors.black45,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                            TextButton(
+                              onPressed: () => Navigator.of(ctx).pop(true),
+                              child: const Text('Có'),
                             ),
                           ],
                         ),
+                      );
+                    },
+                    onDismissed: (direction) {
+                      notificationManager.removeNotificationById(
+                        id!,
+                        currentUserId,
+                      );
+                    },
+                    child: Padding(
+                      padding: EdgeInsetsGeometry.only(top: 3, bottom: 3),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          color: Colors.white,
+                          child: Row(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.asset(
+                                  'assets/images/$fileName',
+                                  width: 70,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+
+                              const SizedBox(width: 12),
+
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      title,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    Text(
+                                      message,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        color: Colors.black45,
+                                      ),
+                                    ),
+                                    Text(
+                                      date.toString() + ' - ' + hour,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        color: Colors.black45,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
     );
   }

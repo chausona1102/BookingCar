@@ -70,7 +70,7 @@ class _CustomerState extends State<Customer> {
   Widget build(BuildContext context) {
     final user = context.watch<AuthManager>().user;
     return Scaffold(
-      backgroundColor: Colors.green.shade50,
+      backgroundColor: Colors.green.shade50,  
       body: SingleChildScrollView(
         // padding: EdgeInsetsGeometry.all(1),
         child: Column(
@@ -208,7 +208,7 @@ class _CustomerState extends State<Customer> {
                 itemBuilder: (context, index) {
                   final banner = banners[index];
                   return GestureDetector(
-                    onTap: () => banner.onTap(context),
+                    onTap: () => banner.onTap(context, _membership, user),
                     child: Image.asset(banner.image, fit: BoxFit.cover),
                   );
                 },
@@ -268,23 +268,6 @@ class _CustomerState extends State<Customer> {
               ),
             ),
             const SizedBox(height: 16),
-            // Padding(
-            //   padding: EdgeInsetsGeometry.symmetric(
-            //     horizontal: 20,
-            //     vertical: 10,
-            //   ),
-            //   child: Align(
-            //     alignment: Alignment.centerLeft,
-            //     child: Text(
-            //       'Gói hội viên',
-            //       style: TextStyle(
-            //         color: Colors.black,
-            //         fontWeight: FontWeight.bold,
-            //         fontSize: 18,
-            //       ),
-            //     ),
-            //   ),
-            // ),
           ],
         ),
       ),

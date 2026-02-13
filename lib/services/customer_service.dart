@@ -18,7 +18,7 @@ class CustomerService extends ChangeNotifier {
     }
   }
 
-  Future<bool> addDriver({
+  Future<bool> addDriverRequest({
     required String licensenumber,
     required String typecar,
     required String user,
@@ -33,17 +33,18 @@ class CustomerService extends ChangeNotifier {
         'typecar': typecar,
         'user': user,
         'carnumber': carnumber,
+        'status': 'requested',
       };
-      final roleChange = await changeRole(user: user);
-      if (!roleChange) return false;
+      // final roleChange = await changeRole(user: user);
+      // if (!roleChange) return false;
       final files = <http.MultipartFile>[];
       if (carimage != null) {
         files.add(await http.MultipartFile.fromPath('carimage', carimage.path));
       }
-      await pb.collection('drivers').create(body: body, files: files);
+      await pb.collection('driverrequests').create(body: body, files: files);
       return true;
     } catch (e) {
-      await pb.collection('users').update(user, body: {'role': 'customer'});
+      // await pb.collection('users').update(user, body: {'role': 'customer'});
       debugPrint("Rollback role do lỗi: $e");
       return false;
     }
