@@ -77,44 +77,11 @@ class _BookingPageState extends State<BookingPage> {
       desiredAccuracy: LocationAccuracy.high,
     );
     final latLng = LatLng(position.latitude, position.longitude);
-    final place = await getPlaceName(latLng);
+    final place = await context.read<BookingManager>().getPlaceName(latLng);
     setState(() {
       _currentLocation = latLng;
       _placeNameSource = place;
     });
-  }
-
-  Future<String> getPlaceName(LatLng latLng) async {
-    try {
-      final placemarks = await placemarkFromCoordinates(
-        latLng.latitude,
-        latLng.longitude,
-      );
-
-      if (placemarks.isEmpty) {
-        return '(${latLng.latitude.toStringAsFixed(4)}, '
-            '${latLng.longitude.toStringAsFixed(4)})';
-      }
-
-      final p = placemarks.first;
-
-      final parts = [
-        p.street,
-        p.subLocality,
-        p.locality,
-        p.administrativeArea,
-      ].where((e) => e != null && e.isNotEmpty).toList();
-
-      if (parts.isEmpty) {
-        return '(${latLng.latitude.toStringAsFixed(4)}, '
-            '${latLng.longitude.toStringAsFixed(4)})';
-      }
-
-      return parts.join(', ');
-    } catch (e) {
-      return '(${latLng.latitude.toStringAsFixed(4)}, '
-          '${latLng.longitude.toStringAsFixed(4)})';
-    }
   }
 
   @override
@@ -127,8 +94,6 @@ class _BookingPageState extends State<BookingPage> {
       appBar: myAppBar(context, 'Booking'),
       body: Column(
         children: [
-          // _search(),
-          // const SizedBox(height: 10),
           BookingMap(
             onMapCreated: (controller) {
               _mapController = controller;
@@ -242,12 +207,6 @@ class _BookingPageState extends State<BookingPage> {
             ),
             const Spacer(),
             button('Xác nhận', 'success', () async {
-              notisManager.addNotification(
-                'Thông báo từ hệ thống',
-                'success',
-                'Đặt xe thành công',
-                userId,
-              );
               if (_distanceKm == null ||
                   _distanceKm! < 1 ||
                   amount == null ||
@@ -275,6 +234,12 @@ class _BookingPageState extends State<BookingPage> {
                     context,
                     'Đặt xe thành công! Chú ý điện thoại dùm rùa nhỏ ạ!',
                     'success',
+                  );
+                  notisManager.addNotification(
+                    'Thông báo từ hệ thống',
+                    'success',
+                    'Đặt xe thành công',
+                    userId,
                   );
                   context.push('/');
                 } else {

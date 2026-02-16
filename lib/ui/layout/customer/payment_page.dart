@@ -1,6 +1,5 @@
 import 'package:booking_app/ui/shared/snackBarLogger.dart';
 import 'package:booking_app/utils/myFunction.dart';
-import 'package:flutter_svg/svg.dart';
 import '../../auth/auth_manager.dart';
 import 'package:booking_app/ui/shared/svgButton.dart';
 import 'package:flutter/services.dart';

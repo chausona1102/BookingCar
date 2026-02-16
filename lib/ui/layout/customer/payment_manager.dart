@@ -1,3 +1,4 @@
+import 'package:booking_app/models/booking.dart';
 import 'package:flutter/material.dart';
 import 'package:booking_app/models/vipdata.dart';
 import 'package:booking_app/services/customer_service.dart';
@@ -19,6 +20,16 @@ class PaymentManager extends ChangeNotifier {
     bankAccount = bankcode.toString();
     amount = data.amount;
     note = 'VIP_${data.plan.toUpperCase()}_$transactionId';
+
+    _initialized = true;
+    notifyListeners();
+  }
+    void createPaymentBooking(BookingModel booking, bankname, bankcode) {
+    transactionId = _generateTransactionId();
+    bankName = bankname.toString();
+    bankAccount = bankcode.toString();
+    amount = booking.price.toInt();
+    note = 'trip_${booking.id.toString()}_$transactionId';
 
     _initialized = true;
     notifyListeners();

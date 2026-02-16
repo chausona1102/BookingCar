@@ -1,3 +1,4 @@
+import 'package:booking_app/models/booking.dart';
 import 'package:booking_app/ui/layout/customer/payment_manager.dart';
 import 'package:booking_app/ui/layout/customer/become_driver_page.dart';
 import 'package:booking_app/ui/layout/customer/become_vip_member_page.dart';
@@ -12,6 +13,9 @@ import 'package:booking_app/ui/layout/customer/history_page.dart';
 import 'package:booking_app/ui/layout/customer/payment_page.dart';
 import 'package:booking_app/ui/layout/driver/driver_page.dart';
 import 'package:booking_app/ui/auth/customer_manager.dart';
+import 'package:booking_app/ui/layout/driver/driver_trip_tracking_page.dart';
+import 'package:booking_app/ui/layout/driver/payment_trip_page.dart';
+import 'package:booking_app/ui/layout/driver/setting_page.dart';
 import 'package:booking_app/ui/layout/profile.dart';
 import 'package:booking_app/utils/myFunction.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -150,6 +154,26 @@ class _AppRootState extends State<AppRoot> {
           path: '/bookings-request',
           builder: (_, __) {
             return BookingsRequestPage();
+          },
+        ),
+        GoRoute(
+          path: '/driver-trip',
+          builder: (_, __) {
+            return DriverTripTrackingPage();
+          },
+        ),
+        GoRoute(
+          path: '/setting',
+          builder: (context, state) {
+            final data = state.extra as String;
+            return SettingPage(userId: data);
+          },
+        ),
+        GoRoute(
+          path: '/payment-trip-page',
+          builder: (context, state) {
+            final data = state.extra as BookingModel;
+            return PaymentTripPage(data: data);
           },
         ),
       ],

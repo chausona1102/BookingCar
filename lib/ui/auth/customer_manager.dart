@@ -1,4 +1,5 @@
 import 'package:booking_app/models/membership.dart';
+import 'package:booking_app/models/user.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import '../../services/customer_service.dart';
@@ -32,5 +33,10 @@ class CustomerManager extends ChangeNotifier {
     }
 
     return m;
+  }
+
+  Future<User?> fetchUserById(String userId) async {
+    final u = await _customerService.fetchUserById(userId);
+    return u;
   }
 }

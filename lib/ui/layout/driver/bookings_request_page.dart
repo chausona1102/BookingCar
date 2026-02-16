@@ -2,218 +2,306 @@ import 'package:booking_app/models/location.dart';
 import 'package:booking_app/ui/auth/auth_manager.dart';
 import 'package:booking_app/ui/layout/customer/booking_manager.dart';
 import 'package:booking_app/ui/layout/driver/driver_manager.dart';
+import 'package:booking_app/ui/notifications/notification_manager.dart';
 import 'package:booking_app/ui/shared/button.dart';
 import 'package:booking_app/ui/shared/iconSvg.dart';
 import 'package:booking_app/ui/shared/myAppBar.dart';
 import 'package:booking_app/ui/shared/snackBarLogger.dart';
 import 'package:booking_app/utils/myFunction.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 class BookingsRequestPage extends StatefulWidget {
   const BookingsRequestPage({super.key});
 
   @override
-  State<BookingsRequestPage> createState() => _BookingsRequestPage();
+  State<BookingsRequestPage> createState() => _BookingsRequestPageState();
 }
 
-class _BookingsRequestPage extends State<BookingsRequestPage> {
-  LocationModel? pickUpLocation;
+class _BookingsRequestPageState extends State<BookingsRequestPage> {
   String? driverId;
-  // LocationModel? dropOffLocation;
+  String? userId;
+
   @override
   void initState() {
     super.initState();
-
     _fetchDriverId();
   }
 
   Future<void> _fetchDriverId() async {
-    // final user = context.read<AuthManager>().user!;
-    final userId = context.read<AuthManager>().currentUserId;
+    userId = context.read<AuthManager>().currentUserId;
     context.read<DriverManager>().listenBookingRequests(userId);
-    // final userId = user.id;
-
     driverId = await context.read<DriverManager>().getDriverIdByUserId(userId!);
-    print(driverId);
   }
 
   @override
   Widget build(BuildContext context) {
     final myFunctions = context.watch<MyFunctions>();
     final bookingManager = context.watch<BookingManager>();
+    final notiManager = context.watch<NotificationManager>();
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+
     return Scaffold(
       backgroundColor: Colors.green.shade50,
       appBar: myAppBar(context, 'Chuyến đang chờ nhận'),
-      body: Padding(
-        padding: EdgeInsetsGeometry.symmetric(horizontal: 5, vertical: 5),
-        child: Consumer<DriverManager>(
-          builder: (context, manager, child) {
-            final bookings = manager.bookingRequests;
-            // bookingManager??
-            if (bookings.isEmpty) {
-              return Center(
-                child: Column(children: [Text('Không có đơn đặt xe nào')]),
+      body: Consumer<DriverManager>(
+        builder: (context, manager, child) {
+          final bookings = manager.bookingRequests;
+
+          if (bookings.isEmpty) {
+            return const Center(child: Text('Không có đơn đặt xe nào'));
+          }
+
+          return ListView.builder(
+            itemCount: bookings.length,
+            padding: const EdgeInsets.all(8),
+            itemBuilder: (_, i) {
+              final booking = bookings[i];
+
+              bookingManager.fetchLocation(booking.pickupLocationId);
+              bookingManager.fetchLocation(booking.dropoffLocationId);
+
+              final pickUpLocation =
+                  bookingManager.locations[booking.pickupLocationId];
+              final dropOffLocation =
+                  bookingManager.locations[booking.dropoffLocationId];
+
+              return Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                margin: const EdgeInsets.symmetric(vertical: 6),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: isLandscape
+                      ? _buildLandscapeItem(
+                          booking,
+                          pickUpLocation,
+                          dropOffLocation,
+                          myFunctions,
+                          bookingManager,
+                        )
+                      : _buildPortraitItem(
+                          booking,
+                          pickUpLocation,
+                          dropOffLocation,
+                          myFunctions,
+                          bookingManager,
+                          notiManager,
+                          // userId,
+                        ),
+                ),
               );
-            }
-            return ListView.builder(
-              itemCount: bookings.length,
-              // padding: EdgeInsets.symmetric(horizontal: 2, vertical: 2),
-              itemBuilder: (_, i) {
-                final pickUpLocationId = bookings[i].pickupLocationId;
-                // final dropOffLocationId = bookings[i].dropoffLocationId;
-                bookingManager.fetchLocation(pickUpLocationId);
-                // bookingManager.fetchLocation(dropOffLocationId);
+            },
+          );
+        },
+      ),
+    );
+  }
 
-                final pickUpLocation =
-                    bookingManager.locations[pickUpLocationId];
-                // final dropOffLocation =
-                //     bookingManager.locations[dropOffLocationId];
+  Widget _buildLandscapeItem(
+    booking,
+    LocationModel? pickUpLocation,
+    LocationModel? dropOffLocation,
+    MyFunctions myFunctions,
+    BookingManager bookingManager,
+  ) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        // IMAGE
+        ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.asset(
+            myFunctions.getTypeImage(booking.type),
+            width: 70,
+            height: 70,
+            fit: BoxFit.cover,
+          ),
+        ),
 
-                return Padding(
-                  padding: EdgeInsetsGeometry.symmetric(
-                    horizontal: 5,
-                    vertical: 5,
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadiusGeometry.circular(12),
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      color: Colors.white,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: Image.asset(
-                                  myFunctions.getTypeImage(bookings[i].type),
-                                  width: 60,
-                                  height: 60,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Text(
-                                          '${myFunctions.convertToVND(bookings[i].price.toInt().toString())}đ',
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w700,
-                                            fontSize: 16,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 5),
-                                        const Text('-'),
-                                        const SizedBox(width: 5),
-                                        Text(
-                                          myFunctions.getTypeText(
-                                            bookings[i].type,
-                                          ),
-                                          style: const TextStyle(
-                                            color: Colors.black45,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    Text(
-                                      bookings[i].bookingTimeFormatted,
-                                      style: const TextStyle(
-                                        color: Colors.black45,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-
-                              const SizedBox(width: 8),
-
-                              button('Nhận đơn', 'green', () async {
-                                final isPending = await bookingManager
-                                    .checkPending(bookings[i].id!);
-                                if (isPending) {
-                                  final addOke = await bookingManager
-                                      .addDriverId(bookings[i].id!, driverId!);
-                                  if (addOke) {
-                                    snackBarLogger(
-                                      context,
-                                      'Bạn đã nhận đơn',
-                                      'success',
-                                    );
-                                  } else {
-                                    snackBarLogger(
-                                      context,
-                                      'Nhận đơn thất bại',
-                                      'error',
-                                    );
-                                  }
-                                } else {
-                                  debugPrint('Khong the nhan don');
-                                }
-                              }),
-                            ],
-                          ),
-
-                          const Divider(color: Colors.green),
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              svgIcon('assets/icons/location.svg', 'red'),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  pickUpLocation?.placeName ??
-                                      "Đang tải địa chỉ...",
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          // const Divider(color: Colors.green),
-                          // Row(
-                          //   crossAxisAlignment: CrossAxisAlignment.start,
-                          //   children: [
-                          //     svgIcon('assets/icons/location.svg', 'green'),
-                          //     const SizedBox(width: 8),
-                          //     Expanded(
-                          //       child: Text(
-                          //         dropOffLocation?.placeName ??
-                          //             "Đang tải địa chỉ...",
-                          //         maxLines: 1,
-                          //         overflow: TextOverflow.ellipsis,
-                          //         style: const TextStyle(
-                          //           fontWeight: FontWeight.w600,
-                          //           fontSize: 15,
-                          //         ),
-                          //       ),
-                          //     ),
-                          //   ],
-                          // ),
-                        ],
-                      ),
+        const SizedBox(width: 16),
+        Expanded(
+          flex: 2,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    '${myFunctions.convertToVND(booking.price.toInt().toString())}đ',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
                     ),
                   ),
-                );
-              },
-            );
-          },
+                  Text(
+                    ' - ',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  Text(
+                    myFunctions.getTypeText(booking.type),
+                    style: const TextStyle(color: Colors.black54, fontSize: 16),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                booking.bookingTimeFormatted,
+                style: const TextStyle(color: Colors.black45),
+              ),
+            ],
+          ),
         ),
-      ),
-      // bottomNavigationBar: DriverNavBar(),
+
+        const SizedBox(width: 16),
+        Expanded(
+          flex: 5,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  svgIcon('assets/icons/location.svg', 'red'),
+                  Text(
+                    pickUpLocation?.placeName ?? "Đang tải...",
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ),
+              const Divider(color: Colors.green, thickness: 2),
+              Row(
+                children: [
+                  svgIcon('assets/icons/location.svg', 'green'),
+                  Text(
+                    dropOffLocation?.placeName ?? "Đang tải...",
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+
+        const Spacer(),
+        button('Nhận đơn', 'green', () async {
+          final isPending = await bookingManager.checkPending(booking.id!);
+
+          if (isPending) {
+            final addOke = await bookingManager.addDriverId(
+              booking.id!,
+              driverId!,
+            );
+
+            if (addOke) {
+              context.push('/driver-trip');
+              snackBarLogger(context, 'Bạn đã nhận đơn', 'success');
+            } else {
+              snackBarLogger(context, 'Nhận đơn thất bại', 'error');
+            }
+          }
+        }),
+      ],
+    );
+  }
+
+  Widget _buildPortraitItem(
+    booking,
+    LocationModel? pickUpLocation,
+    LocationModel? dropOffLocation,
+    MyFunctions myFunctions,
+    BookingManager bookingManager,
+    NotificationManager notiManager,
+    // String? userId,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.asset(
+                myFunctions.getTypeImage(booking.type),
+                width: 60,
+                height: 60,
+                fit: BoxFit.cover,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${myFunctions.convertToVND(booking.price.toInt().toString())}đ',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    booking.bookingTimeFormatted,
+                    style: const TextStyle(color: Colors.black45),
+                  ),
+                ],
+              ),
+            ),
+            button('Nhận đơn', 'green', () async {
+              final isPending = await bookingManager.checkPending(booking.id!);
+
+              if (isPending) {
+                final addOke = await bookingManager.addDriverId(
+                  booking.id!,
+                  driverId!,
+                );
+
+                if (addOke) {
+                  context.push(
+                    '/driver-trip',
+                    extra: {'booking': booking, 'driverid': driverId},
+                  );
+                  snackBarLogger(context, 'Bạn đã nhận đơn', 'success');
+                  // notiManager.addNotification(
+                  //   'Thông báo từ hệ thống',
+                  //   'success',
+                  //   'Bạn đã nhận đơn hàng',
+                  //   userId!,
+                  // );
+                }
+              }
+            }),
+          ],
+        ),
+        const Divider(color: Colors.green, thickness: 2),
+        Row(
+          children: [
+            svgIcon('assets/icons/location.svg', 'red'),
+            Text(
+              pickUpLocation?.placeName ?? "Đang tải...",
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
+        const Divider(),
+        Row(
+          children: [
+            svgIcon('assets/icons/location.svg', 'green'),
+            Text(
+              dropOffLocation?.placeName ?? "Đang tải...",
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

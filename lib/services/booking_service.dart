@@ -132,11 +132,11 @@ class BookingService extends ChangeNotifier {
     return controller.stream;
   }
 
-  Future<bool> cancelBooking(String bookingId) async {
+  Future<bool> updateBookingStatus(String bookingId, String status) async {
     try {
       await pb
           .collection('bookings')
-          .update(bookingId, body: {'status': 'cancelled'});
+          .update(bookingId, body: {'status': '$status'});
       return true;
     } catch (e) {
       return false;

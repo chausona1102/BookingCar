@@ -199,7 +199,7 @@ class _TripTracingState extends State<TripTracingPage> {
 
                           Expanded(
                             child: SingleChildScrollView(
-                              padding: const EdgeInsets.all(12),
+                              padding: const EdgeInsets.all(2),
                               child: Card(
                                 // color: Colors.red,
                                 elevation: 6,
@@ -342,7 +342,10 @@ class _TripTracingState extends State<TripTracingPage> {
                                             if (confirm != true) return;
                                             final cancelled =
                                                 await bookingManager
-                                                    .cancelBooking(booking.id!);
+                                                    .updateBookingStatus(
+                                                      booking.id!,
+                                                      'cancelled',
+                                                    );
                                             if (cancelled) {
                                               snackBarLogger(
                                                 context,

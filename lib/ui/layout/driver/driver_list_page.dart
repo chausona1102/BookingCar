@@ -22,10 +22,13 @@ class _DriverListPage extends State<DriverListPage> {
   void initState() {
     super.initState();
     Future.microtask(() async {
-      context.read<DriverManager>().fetchDrivers();
+      final driverManager = context.read<DriverManager>();
+      driverManager.listenDriversOnline();
+
       final authManager = context.read<AuthManager>();
       final customerManager = context.read<CustomerManager>();
       final userId = authManager.currentUserId;
+
       if (userId != null) {
         try {
           final record = await customerManager.getMembership(user: userId);
@@ -76,14 +79,40 @@ class _DriverListPage extends State<DriverListPage> {
                   color: Colors.white,
                   child: Row(
                     children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.network(
-                          driver.user.avatarUrl!,
-                          width: 70,
-                          height: 70,
-                          fit: BoxFit.cover,
-                        ),
+                      Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.network(
+                              driver.user.avatarUrl!,
+                              width: 70,
+                              height: 70,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          Positioned(
+                            top: 2,
+                            // left: 2,
+                            right: 2,
+                            child: Container(
+                              width: 16,
+                              height: 16,
+                              decoration: BoxDecoration(
+                                color: Colors.green,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: const Color.fromARGB(
+                                    255,
+                                    255,
+                                    255,
+                                    255,
+                                  ),
+                                  width: 1,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
 
                       const SizedBox(width: 12),
@@ -148,6 +177,8 @@ class _DriverListPage extends State<DriverListPage> {
                   ),
                 ),
               ),
+
+              // End cliprrect
             );
           },
         ),

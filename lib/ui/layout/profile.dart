@@ -1,5 +1,6 @@
 import 'package:booking_app/ui/auth/auth_manager.dart';
 import 'package:booking_app/ui/shared/navigation_bar.dart';
+import 'package:booking_app/ui/shared/navigation_bar_driver.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -9,123 +10,152 @@ class Profile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = context.watch<AuthManager>().user;
-
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
     if (user == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         context.go('/login');
       });
       return const SizedBox.shrink();
     }
+    final role = user.role;
 
     return Scaffold(
       backgroundColor: Colors.green.shade50,
       body: Padding(
         padding: const EdgeInsets.all(20),
+        child: isLandscape
+            ? Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _avatar(user),
+                          const SizedBox(height: 20),
+                          _name(user),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(width: 30),
+                  Expanded(
+                    flex: 7,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // const Spacer(),
+                        _cardInfo(context, user),
+                        const SizedBox(height: 10),
+                        _buttonLogOut(context),
+                        // const Spacer(),
+                      ],
+                    ),
+                  ),
+                ],
+              )
+            : Column(
+                children: [
+                  const SizedBox(height: 40),
+                  _avatar(user),
+                  const SizedBox(height: 20),
+                  _name(user),
+                  const SizedBox(height: 30),
+                  _cardInfo(context, user),
+                  const Spacer(),
+                  _buttonLogOut(context),
+                ],
+              ),
+      ),
+      bottomNavigationBar: role == 'driver' ? DriverNavBar() : NavBar(),
+    );
+  }
+
+  Widget _avatar(user) {
+    return CircleAvatar(
+      radius: 70,
+      backgroundColor: Colors.white,
+      backgroundImage: user?.avatarUrl != null
+          ? NetworkImage(user!.avatarUrl!)
+          : const AssetImage('assets/default_avatar.png') as ImageProvider,
+    );
+  }
+
+  Widget _name(user) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          user?.fullName ?? 'Chưa có tên',
+          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+        ),
+      ],
+    );
+  }
+
+  Widget _cardInfo(BuildContext context, user) {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 3,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            const SizedBox(height: 40),
-
-            /// Avatar
-            CircleAvatar(
-              radius: 70,
-              backgroundColor: Colors.white,
-              backgroundImage: user?.avatarUrl != null
-                  ? NetworkImage(user!.avatarUrl!)
-                  : const AssetImage('assets/default_avatar.png')
-                        as ImageProvider,
+            _infoRow(
+              icon: Icons.person,
+              text: user?.userName ?? 'Chưa có tài khoản',
             ),
-            const SizedBox(height: 20),
-
-            /// Name
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  user?.fullName ?? 'Chưa có tên',
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
+            const Divider(),
+            _infoRow(
+              icon: Icons.email,
+              text: user?.emailText ?? 'Chưa có email',
+            ),
+            const Divider(),
+            _infoRow(
+              icon: Icons.phone,
+              text: user?.phoneNumber ?? 'Chưa có số điện thoại',
+            ),
+            if (user.role != 'driver') ...[
+              const Divider(),
+              TextButton(
+                onPressed: () => {context.push('/register-driver')},
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.green,
                 ),
-                // IconButton(
-                //   onPressed: () => {},
-                //   icon: Icon(Icons.edit, size: 0),
-                // ),
-              ],
-            ),
-
-            const SizedBox(height: 30),
-
-            /// Info card
-            Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+                child: Text('Đăng ký làm tài xế'),
               ),
-              elevation: 3,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    _infoRow(
-                      icon: Icons.person,
-                      text: user?.userName ?? 'Chưa có tài khoản',
-                    ),
-                    const Divider(),
-                    _infoRow(
-                      icon: Icons.email,
-                      text: user?.emailText ?? 'Chưa có email',
-                    ),
-                    const Divider(),
-                    _infoRow(
-                      icon: Icons.phone,
-                      text: user?.phoneNumber ?? 'Chưa có số điện thoại',
-                    ),
-                    if (user.role != 'driver') ...[
-                      const Divider(),
-                      TextButton(
-                        onPressed: () => {context.push('/register-driver')},
-                        style: TextButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          backgroundColor: Colors.green,
-                        ),
-                        child: Text('Đăng ký làm tài xế'),
-                      ),
-                    ],
-                    // if(user.role == 'driver') ...[]
-                  ],
-                ),
-              ),
-            ),
-
-            const Spacer(),
-
-            /// Logout button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                icon: const Icon(Icons.logout, color: Colors.white),
-                label: const Text(
-                  'Đăng xuất',
-                  style: TextStyle(color: Colors.white),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red.shade500,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  textStyle: const TextStyle(fontSize: 16),
-                ),
-                onPressed: () {
-                  context.read<AuthManager>().logout();
-                  context.go('/login');
-                },
-              ),
-            ),
+            ],
+            // if(user.role == 'driver') ...[]
           ],
         ),
       ),
-      bottomNavigationBar: const NavBar(),
+    );
+  }
+
+  Widget _buttonLogOut(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        icon: const Icon(Icons.logout, color: Colors.white),
+        label: const Text('Đăng xuất', style: TextStyle(color: Colors.white)),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.red.shade500,
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          textStyle: const TextStyle(fontSize: 16),
+        ),
+        onPressed: () {
+          context.read<AuthManager>().logout();
+          context.go('/login');
+        },
+      ),
     );
   }
 

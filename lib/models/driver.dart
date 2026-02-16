@@ -8,6 +8,7 @@ class Driver {
   final User user;
   final String carimage;
   final String carnumber;
+  bool isonline;
 
   Driver({
     required this.id,
@@ -16,6 +17,7 @@ class Driver {
     required this.user,
     required this.carimage,
     required this.carnumber,
+    this.isonline = false,
   });
 
   factory Driver.fromRecord(RecordModel r) {
@@ -32,6 +34,7 @@ class Driver {
       user: User.fromJson(expanded.first.toJson()),
       carimage: r.getStringValue('carimage'),
       carnumber: r.getStringValue('carnumber'),
+      isonline: r.data['isonline'] ?? false,
     );
   }
 }

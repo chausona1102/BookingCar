@@ -1,4 +1,5 @@
 import 'package:booking_app/models/membership.dart';
+import 'package:booking_app/models/user.dart';
 import 'package:flutter/material.dart';
 import 'package:pocketbase/pocketbase.dart';
 import 'package:http/http.dart' as http;
@@ -84,6 +85,16 @@ class CustomerService extends ChangeNotifier {
       return Membership.fromRecord(record);
     } catch (e) {
       debugPrint('Không có membership: $e');
+      return null;
+    }
+  }
+
+  Future<User?> fetchUserById(String userId) async {
+    try {
+      final record = await pb.collection('users').getOne(userId);
+      return User.fromJson(record.toJson());
+    } catch (e) {
+      debugPrint('Fetch user lỗi: $e');
       return null;
     }
   }

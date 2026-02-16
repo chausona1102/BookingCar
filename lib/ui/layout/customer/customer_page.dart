@@ -3,6 +3,7 @@ import 'package:booking_app/ui/auth/auth_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../shared/navigation_bar.dart';
+import '../../shared/iconButton.dart';
 import 'banner_manager.dart';
 import 'package:go_router/go_router.dart';
 import 'package:booking_app/ui/auth/customer_manager.dart';
@@ -70,7 +71,7 @@ class _CustomerState extends State<Customer> {
   Widget build(BuildContext context) {
     final user = context.watch<AuthManager>().user;
     return Scaffold(
-      backgroundColor: Colors.green.shade50,  
+      backgroundColor: Colors.green.shade50,
       body: SingleChildScrollView(
         // padding: EdgeInsetsGeometry.all(1),
         child: Column(
@@ -150,9 +151,10 @@ class _CustomerState extends State<Customer> {
                       },
                     );
                   },
-                  icon: _iconButton(
+                  icon: iconButton(
                     imagePath: 'assets/images/car.png',
                     text: 'Ô tô',
+                    size: 'medium'
                   ),
                 ),
                 IconButton(
@@ -166,30 +168,34 @@ class _CustomerState extends State<Customer> {
                       },
                     );
                   },
-                  icon: _iconButton(
+                  icon: iconButton(
                     imagePath: 'assets/images/motobike.png',
                     text: 'Xe máy',
+                    size: 'medium'
                   ),
                 ),
                 IconButton(
                   onPressed: () => context.push('/trip-tracing'),
-                  icon: _iconButton(
+                  icon: iconButton(
                     imagePath: 'assets/images/car_driving_removebg.png',
                     text: 'Theo dõi',
+                    size: 'medium'
                   ),
                 ),
                 IconButton(
                   onPressed: () => {context.push('/become-vip-page')},
-                  icon: _iconButton(
+                  icon: iconButton(
                     imagePath: 'assets/images/VIP_rmbg.png',
                     text: 'Hội viên',
+                    size: 'medium'
                   ),
                 ),
                 IconButton(
                   onPressed: () => {context.push('/driver-list')},
-                  icon: _iconButton(
+                  icon: iconButton(
                     imagePath: 'assets/images/driver.png',
                     text: 'Tài xế',
+                    size: 'medium'
                   ),
                 ),
               ],
@@ -272,19 +278,6 @@ class _CustomerState extends State<Customer> {
         ),
       ),
       bottomNavigationBar: const NavBar(),
-    );
-  }
-
-  Widget _iconButton({required String imagePath, required String text}) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Image.asset(imagePath, width: 80, height: 80, fit: BoxFit.contain),
-        Text(
-          text,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-        ),
-      ],
     );
   }
 }

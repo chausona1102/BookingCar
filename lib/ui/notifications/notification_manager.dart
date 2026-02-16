@@ -1,7 +1,5 @@
-import '../auth/auth_manager.dart';
 import 'package:booking_app/models/notification.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:booking_app/services/notification_service.dart';
 
 class NotificationManager extends ChangeNotifier {
@@ -15,6 +13,7 @@ class NotificationManager extends ChangeNotifier {
     _notifications.clear();
     _notifications.addAll(notis);
     _unreadCount = notis.length;
+    _unreadCount = 0;
     notifyListeners();
   }
 
