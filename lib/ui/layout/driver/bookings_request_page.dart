@@ -167,7 +167,7 @@ class _BookingsRequestPageState extends State<BookingsRequestPage> {
             children: [
               Row(
                 children: [
-                  svgIcon('assets/icons/location.svg', 'red'),
+                  svgIcon('assets/icons/location.svg', 'red', false),
                   Text(
                     pickUpLocation?.placeName ?? "Đang tải...",
                     style: const TextStyle(
@@ -180,7 +180,7 @@ class _BookingsRequestPageState extends State<BookingsRequestPage> {
               const Divider(color: Colors.green, thickness: 2),
               Row(
                 children: [
-                  svgIcon('assets/icons/location.svg', 'green'),
+                  svgIcon('assets/icons/location.svg', 'green', false),
                   Text(
                     dropOffLocation?.placeName ?? "Đang tải...",
                     style: const TextStyle(
@@ -284,7 +284,7 @@ class _BookingsRequestPageState extends State<BookingsRequestPage> {
         const Divider(color: Colors.green, thickness: 2),
         Row(
           children: [
-            svgIcon('assets/icons/location.svg', 'red'),
+            svgIcon('assets/icons/location.svg', 'red', false),
             Text(
               pickUpLocation?.placeName ?? "Đang tải...",
               style: const TextStyle(fontWeight: FontWeight.w600),
@@ -294,7 +294,7 @@ class _BookingsRequestPageState extends State<BookingsRequestPage> {
         const Divider(),
         Row(
           children: [
-            svgIcon('assets/icons/location.svg', 'green'),
+            svgIcon('assets/icons/location.svg', 'green', false),
             Text(
               dropOffLocation?.placeName ?? "Đang tải...",
               style: const TextStyle(fontWeight: FontWeight.w600),

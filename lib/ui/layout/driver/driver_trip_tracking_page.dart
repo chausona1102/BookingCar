@@ -457,7 +457,7 @@ Widget _infoRow({
   return Row(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      svgIcon(icon, iconColor),
+      svgIcon(icon, iconColor, false),
       const SizedBox(width: 12),
       Expanded(
         child: Column(

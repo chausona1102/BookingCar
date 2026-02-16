@@ -1,6 +1,7 @@
 import 'package:booking_app/models/membership.dart';
 import 'package:booking_app/models/user.dart';
 import 'package:booking_app/ui/shared/button.dart';
+import 'package:booking_app/ui/shared/iconSvg.dart';
 import 'package:booking_app/ui/shared/myAppBar.dart';
 import 'package:booking_app/ui/shared/snackBarLogger.dart';
 import 'package:booking_app/ui/shared/svgButtonPro.dart';
@@ -9,7 +10,6 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:geocoding/geocoding.dart';
 import 'package:booking_app/ui/shared/googleMap.dart';
 import 'package:provider/provider.dart';
 import 'booking_manager.dart';
@@ -89,12 +89,15 @@ class _BookingPageState extends State<BookingPage> {
     final bookingManager = context.watch<BookingManager>();
     final notisManager = context.watch<NotificationManager>();
     final myFunctions = context.watch<MyFunctions>();
+    var isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
 
     return Scaffold(
       appBar: myAppBar(context, 'Booking'),
-      body: Column(
-        children: [
-          BookingMap(
+      backgroundColor: Colors.green.shade50,
+      body: OrientationBuilder(
+        builder: (context, orientation) {
+          Widget mapWidget = BookingMap(
             onMapCreated: (controller) {
               _mapController = controller;
             },
@@ -106,33 +109,41 @@ class _BookingPageState extends State<BookingPage> {
             },
             onDistanceChanged: (km) {
               if (_currentLocation == null || _destination == null) return;
+
               setState(() {
                 _distanceKm = km;
-                if (memberInfo != null && memberInfo!.discountPercent > 0) {
-                  _paymentForDistance = bookingManager
+
+                if (memberInfo != null &&
+                    memberInfo!.discountPercent > 0 &&
+                    !memberInfo!.isExpired) {
+                  _paymentForDistance = context
+                      .read<BookingManager>()
                       .calculatePaymentWithDisCount(
                         _distanceKm,
                         type,
                         disCount,
                       );
                 } else {
-                  _paymentForDistance = bookingManager.calculatePayment(
-                    _distanceKm,
-                    type,
-                  );
+                  _paymentForDistance = context
+                      .read<BookingManager>()
+                      .calculatePayment(_distanceKm, type);
                 }
+
                 amount = _paymentForDistance;
+
                 pickupLocation = LocationModel(
                   placeName: _placeNameSource!,
                   latitude: _currentLocation!.latitude.toString(),
                   longitude: _currentLocation!.longitude.toString(),
                 );
+
                 dropoffLocation = LocationModel(
                   placeName: _placeNameDest!,
                   latitude: _destination!.latitude.toString(),
                   longitude: _destination!.longitude.toString(),
                 );
               });
+
               if (km < 1) {
                 snackBarLogger(
                   context,
@@ -141,34 +152,55 @@ class _BookingPageState extends State<BookingPage> {
                 );
               }
             },
-          ),
-          const SizedBox(height: 10),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+          );
+
+          Widget infoWidget = SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 2),
             child: Column(
               children: [
+                const SizedBox(height: 5),
                 _selecting(),
-                const SizedBox(height: 10),
+                const SizedBox(height: 5),
                 Card(
                   elevation: 6,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Padding(
-                    padding: EdgeInsetsGeometry.symmetric(
+                    padding: const EdgeInsets.symmetric(
                       horizontal: 10,
                       vertical: 15,
                     ),
                     child: _bookingContent(),
                   ),
                 ),
+                const SizedBox(height: 20),
               ],
             ),
-          ),
-        ],
+          );
+
+          if (!isLandscape) {
+            return Column(
+              children: [
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.6,
+                  child: mapWidget,
+                ),
+                Expanded(child: infoWidget),
+              ],
+            );
+          }
+
+          return Row(
+            children: [
+              Expanded(flex: 6, child: mapWidget),
+              Expanded(flex: 4, child: infoWidget),
+            ],
+          );
+        },
       ),
       bottomNavigationBar: BottomAppBar(
-        height: 100,
+        height: isLandscape ? 50 : 100,
         color: Colors.white,
         child: Row(
           children: [
@@ -177,34 +209,71 @@ class _BookingPageState extends State<BookingPage> {
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
             ),
             const SizedBox(width: 10),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (memberInfo != null && memberInfo!.discountPercent > 0) ...[
+            if (isLandscape) ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  if (memberInfo != null &&
+                      memberInfo!.discountPercent > 0) ...[
+                    Text(
+                      _paymentForDistance == null
+                          ? '0 vnđ'
+                          : '${myFunctions.convertToVND((_paymentForDistance! / (1 - disCount)).toStringAsFixed(0))} vnđ',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        color: Colors.red,
+                        decoration: TextDecoration.lineThrough,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(width: 10),
                   Text(
                     _paymentForDistance == null
                         ? '0 vnđ'
-                        : '${myFunctions.convertToVND((_paymentForDistance! / (1 - disCount)).toStringAsFixed(0))} vnđ',
+                        : '${myFunctions.convertToVND(_paymentForDistance!.toStringAsFixed(0))} vnđ',
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                      color: Colors.red,
-                      decoration: TextDecoration.lineThrough,
+                      fontSize: 20,
+                      color: Colors.green,
                     ),
                   ),
                 ],
-                Text(
-                  _paymentForDistance == null
-                      ? '0 vnđ'
-                      : '${myFunctions.convertToVND(_paymentForDistance!.toStringAsFixed(0))} vnđ',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 20,
-                    color: Colors.green,
+              ),
+            ],
+            if (!isLandscape) ...[
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (memberInfo != null &&
+                      memberInfo!.discountPercent > 0) ...[
+                    Text(
+                      _paymentForDistance == null
+                          ? '0 vnđ'
+                          : '${myFunctions.convertToVND((_paymentForDistance! / (1 - disCount)).toStringAsFixed(0))} vnđ',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                        color: Colors.red,
+                        decoration: TextDecoration.lineThrough,
+                      ),
+                    ),
+                  ],
+                  Text(
+                    _paymentForDistance == null
+                        ? '0 vnđ'
+                        : '${myFunctions.convertToVND(_paymentForDistance!.toStringAsFixed(0))} vnđ',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 20,
+                      color: Colors.green,
+                    ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
+            ],
+
             const Spacer(),
             button('Xác nhận', 'success', () async {
               if (_distanceKm == null ||
@@ -261,6 +330,8 @@ class _BookingPageState extends State<BookingPage> {
     return StatefulBuilder(
       builder: (context, setLocal) {
         return Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             svgButtonPro(
               'assets/icons/car.svg',
@@ -362,144 +433,101 @@ class _BookingPageState extends State<BookingPage> {
     );
   }
 
-  Widget _bookingContent() {
-    String lat = '--';
-    String lng = '--';
-    final myFunctions = context.watch<MyFunctions>();
-
-    if (_destination != null) {
-      lat = _destination!.latitude.toStringAsFixed(2);
-      lng = _destination!.longitude.toStringAsFixed(2);
-    }
-    return Column(
+  Widget _infoRow({
+    required String icon,
+    required String iconColor,
+    required String title,
+    required String value,
+    required bool notChange,
+  }) {
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Center(
-          child: const Text(
-            'Thông tin đặt xe',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-          ),
-        ),
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            Text(
-              'Điểm bắt đầu:',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.black,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Text(
-              'Vị trí hiện tại',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.black45,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            Text(
-              'Điểm đến:',
-              maxLines: 4,
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.black,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                _distanceKm == null
-                    ? _placeNameDest.toString()
-                    : '${_placeNameDest} (${_distanceKm!.toStringAsFixed(2)}Km)',
-                maxLines: 3,
-                overflow: TextOverflow.clip,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.black45,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        if (memberInfo != null &&
-            memberInfo!.discountPercent > 0 &&
-            !memberInfo!.isExpired) ...[
-          Row(
+        svgIcon(icon, iconColor, notChange),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Cấp độ thành viên: ',
-                maxLines: 4,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.black,
-                  fontWeight: FontWeight.w700,
+                title,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black54,
                 ),
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  myFunctions.planRevert(memberInfo!.plan),
-                  maxLines: 4,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.black45,
-                    fontWeight: FontWeight.w700,
-                  ),
+              const SizedBox(height: 4),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 5),
-          Row(
-            children: [
-              Text(
-                'Mức ưu đãi: ',
-                maxLines: 4,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.black,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  '${memberInfo!.discountPercent.toString()}%',
-                  maxLines: 4,
-                  style: TextStyle(
-                    fontSize: 20,
-                    color: Colors.green,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
+        ),
       ],
     );
   }
 
-  // Widget _bookingMotoBike() {
-  //   return Center(child: Text('Dat xe may'));
-  // }
+  Widget _bookingContent() {
+    final myFunctions = context.watch<MyFunctions>();
 
-  // Widget _bookingDriver() {
-  //   return Center(child: Text('Dat tai xe'));
-  // }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // const Center(
+        //   child: Text(
+        //     'Thông tin đặt xe',
+        //     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+        //   ),
+        // ),
+        // const SizedBox(height: 15),
+        _infoRow(
+          icon: 'assets/icons/location.svg',
+          iconColor: 'red',
+          title: 'Điểm bắt đầu',
+          value: _placeNameSource ?? 'Không xác định',
+          notChange: false,
+        ),
 
-  Widget _urlNotFound() {
-    return Center();
+        const SizedBox(height: 15),
+
+        _infoRow(
+          icon: 'assets/icons/location.svg',
+          iconColor: 'green',
+          title: 'Điểm đến',
+          value: _distanceKm == null
+              ? _placeNameDest.toString()
+              : '${_placeNameDest} (${_distanceKm!.toStringAsFixed(2)} Km)',
+          notChange: false,
+        ),
+
+        const SizedBox(height: 15),
+
+        /// Membership
+        if (memberInfo != null &&
+            memberInfo!.discountPercent > 0 &&
+            !memberInfo!.isExpired) ...[
+          _infoRow(
+            icon: 'assets/icons/level.svg',
+            iconColor: 'green',
+            title: 'Cấp độ thành viên',
+            value: myFunctions.planRevert(memberInfo!.plan),
+            notChange: true,
+          ),
+          const SizedBox(height: 10),
+          _infoRow(
+            icon: 'assets/icons/voucher.svg',
+            iconColor: 'green',
+            title: 'Mức ưu đãi',
+            value: '${memberInfo!.discountPercent}%',
+            notChange: false,
+          ),
+        ],
+      ],
+    );
   }
 }

@@ -3,7 +3,6 @@ import 'package:booking_app/ui/layout/driver/driver_manager.dart';
 import 'package:booking_app/ui/shared/myAppBar.dart';
 import 'package:booking_app/ui/shared/snackBarLogger.dart';
 import 'package:flutter/material.dart';
-import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 
 class SettingPage extends StatefulWidget {

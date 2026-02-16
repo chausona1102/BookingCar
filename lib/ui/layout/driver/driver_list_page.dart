@@ -33,13 +33,11 @@ class _DriverListPage extends State<DriverListPage> {
         try {
           final record = await customerManager.getMembership(user: userId);
           if (!mounted) return;
-          if (record != null) {
-            setState(() {
-              _membership = record;
-            });
-            print(record);
-          }
-        } catch (e) {
+          setState(() {
+            _membership = record;
+          });
+          print(record);
+                } catch (e) {
           print('Lỗi $e');
         }
       } else {

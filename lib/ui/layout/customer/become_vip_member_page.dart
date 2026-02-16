@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:booking_app/ui/shared/myAppBar.dart';
 import 'package:provider/provider.dart';
-import 'booking_manager.dart';
 
 class BecomeVipMemberPage extends StatefulWidget {
   const BecomeVipMemberPage({super.key});
@@ -20,11 +19,10 @@ class _BecomeVipMemberPageState extends State<BecomeVipMemberPage> {
   var _amount = 100000;
   @override
   Widget build(BuildContext context) {
-    final bookingManager = context.watch<BookingManager>();
     final myFunctions = context.watch<MyFunctions>();
     return Scaffold(
       appBar: myAppBar(context, 'Đăng ký hội viên'),
-      body: Container(
+      body: SingleChildScrollView(
         padding: EdgeInsets.symmetric(horizontal: 15, vertical: 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-Widget svgIcon(String icon, String color) {
+Widget svgIcon(String icon, String color, bool notChange) {
   Color _color;
   switch (color) {
     case 'light':
@@ -22,7 +22,13 @@ Widget svgIcon(String icon, String color) {
     default:
       _color = Colors.black;
   }
-
+  if(notChange) {
+    return SvgPicture.asset(
+      icon,
+      height: 24,
+      width: 24,
+    );
+  }
   return SvgPicture.asset(
     icon,
     height: 24,

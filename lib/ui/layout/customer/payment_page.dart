@@ -51,13 +51,11 @@ class _PaymentState extends State<PaymentPage> {
         try {
           final record = await customerManager.getMembership(user: userId);
           if (!mounted) return;
-          if (record != null) {
-            setState(() {
-              _membership = record;
-              _isMemberShips = true;
-            });
-            // print(records); // có record
-          }
+          setState(() {
+            _membership = record;
+            _isMemberShips = true;
+          });
+          // print(records); // có record
         } catch (e) {
           print('Exception: $e');
         }
@@ -130,9 +128,9 @@ class _PaymentState extends State<PaymentPage> {
     } else {
       return Scaffold(
         appBar: myAppBar(context, 'Thanh toán'),
-        body: Container(
+        body: SingleChildScrollView(
           padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-          width: double.infinity,
+          // width: double.infinity,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             // mainAxisAlignment: MainAxisAlignment.center,

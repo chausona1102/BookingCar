@@ -1,4 +1,5 @@
 import 'package:booking_app/models/membership.dart';
+import 'package:booking_app/models/user.dart';
 import 'package:booking_app/ui/auth/auth_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -32,11 +33,9 @@ class _CustomerState extends State<Customer> {
         try {
           final record = await customerManager.getMembership(user: userId);
           if (!mounted) return;
-          if (record != null) {
-            setState(() {
-              _membership = record;
-            });
-          }
+          setState(() {
+            _membership = record;
+          });
         } catch (e) {
           print('Lỗi $e');
         }
@@ -70,13 +69,15 @@ class _CustomerState extends State<Customer> {
   @override
   Widget build(BuildContext context) {
     final user = context.watch<AuthManager>().user;
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
     return Scaffold(
       backgroundColor: Colors.green.shade50,
       body: SingleChildScrollView(
-        // padding: EdgeInsetsGeometry.all(1),
         child: Column(
           children: [
-            const SizedBox(height: 60),
+            if (!isLandscape) ...[const SizedBox(height: 40)],
+            const SizedBox(height: 20),
             Padding(
               padding: EdgeInsets.only(top: 20, left: 20, right: 20),
               child: Row(
@@ -137,89 +138,55 @@ class _CustomerState extends State<Customer> {
               ),
             ),
             const SizedBox(height: 10),
-            Wrap(
-              // spacing: 2,
-              children: [
-                IconButton(
-                  onPressed: () {
-                    context.push(
-                      '/booking',
-                      extra: {
-                        'type': 'car',
-                        'memberInfo': _membership,
-                        'user': user,
-                      },
-                    );
-                  },
-                  icon: iconButton(
-                    imagePath: 'assets/images/car.png',
-                    text: 'Ô tô',
-                    size: 'medium'
-                  ),
-                ),
-                IconButton(
-                  onPressed: () {
-                    context.push(
-                      '/booking',
-                      extra: {
-                        'type': 'motobike',
-                        'memberInfo': _membership,
-                        'user': user,
-                      },
-                    );
-                  },
-                  icon: iconButton(
-                    imagePath: 'assets/images/motobike.png',
-                    text: 'Xe máy',
-                    size: 'medium'
-                  ),
-                ),
-                IconButton(
-                  onPressed: () => context.push('/trip-tracing'),
-                  icon: iconButton(
-                    imagePath: 'assets/images/car_driving_removebg.png',
-                    text: 'Theo dõi',
-                    size: 'medium'
-                  ),
-                ),
-                IconButton(
-                  onPressed: () => {context.push('/become-vip-page')},
-                  icon: iconButton(
-                    imagePath: 'assets/images/VIP_rmbg.png',
-                    text: 'Hội viên',
-                    size: 'medium'
-                  ),
-                ),
-                IconButton(
-                  onPressed: () => {context.push('/driver-list')},
-                  icon: iconButton(
-                    imagePath: 'assets/images/driver.png',
-                    text: 'Tài xế',
-                    size: 'medium'
-                  ),
-                ),
-              ],
-            ),
+            if (!isLandscape) ...[
+              _action(user!, 'medium'),
+            ] else ...[
+              _action(user!, 'large'),
+            ],
             const Divider(color: Colors.green),
-            SizedBox(
-              height: 200,
-              child: PageView.builder(
-                controller: _pageController,
-                itemCount: banners.length,
-                onPageChanged: (index) {
-                  setState(() {
-                    _currentPage = index;
-                  });
-                },
-                itemBuilder: (context, index) {
-                  final banner = banners[index];
-                  return GestureDetector(
-                    onTap: () => banner.onTap(context, _membership, user),
-                    child: Image.asset(banner.image, fit: BoxFit.cover),
-                  );
-                },
+            if (isLandscape) ...[
+              SizedBox(
+                height: 300,
+                child: PageView.builder(
+                  controller: _pageController,
+                  itemCount: banners.length,
+                  onPageChanged: (index) {
+                    setState(() {
+                      _currentPage = index;
+                    });
+                  },
+                  itemBuilder: (context, index) {
+                    final banner = banners[index];
+                    return GestureDetector(
+                      onTap: () => banner.onTap(context, _membership, user),
+                      child: Image.asset(banner.image, fit: BoxFit.contain),
+                    );
+                  },
+                ),
               ),
-            ),
+            ],
+            if (!isLandscape) ...[
+              SizedBox(
+                height: 200,
+                child: PageView.builder(
+                  controller: _pageController,
+                  itemCount: banners.length,
+                  onPageChanged: (index) {
+                    setState(() {
+                      _currentPage = index;
+                    });
+                  },
+                  itemBuilder: (context, index) {
+                    final banner = banners[index];
+                    return GestureDetector(
+                      onTap: () => banner.onTap(context, _membership, user),
+                      child: Image.asset(banner.image, fit: BoxFit.cover),
+                    );
+                  },
+                ),
+              ),
+            ],
+
             const SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -278,6 +245,79 @@ class _CustomerState extends State<Customer> {
         ),
       ),
       bottomNavigationBar: const NavBar(),
+    );
+  }
+
+  Widget _action(User user, String size) {
+    double _spacing = 20;
+    switch (size) {
+      case 'small':
+        _spacing = 20;
+        break;
+      case 'medium':
+        _spacing = 30;
+        break;
+      case 'large':
+        _spacing = 40;
+        break;
+    }
+    return Wrap(
+      children: [
+        IconButton(
+          onPressed: () {
+            context.push(
+              '/booking',
+              extra: {'type': 'car', 'memberInfo': _membership, 'user': user},
+            );
+          },
+          icon: iconButton(
+            imagePath: 'assets/images/car.png',
+            text: 'Ô tô',
+            size: size,
+          ),
+        ),
+        IconButton(
+          onPressed: () {
+            context.push(
+              '/booking',
+              extra: {
+                'type': 'motobike',
+                'memberInfo': _membership,
+                'user': user,
+              },
+            );
+          },
+          icon: iconButton(
+            imagePath: 'assets/images/motobike.png',
+            text: 'Xe máy',
+            size: size,
+          ),
+        ),
+        IconButton(
+          onPressed: () => context.push('/trip-tracing'),
+          icon: iconButton(
+            imagePath: 'assets/images/car_driving_removebg.png',
+            text: 'Theo dõi',
+            size: size,
+          ),
+        ),
+        IconButton(
+          onPressed: () => {context.push('/become-vip-page')},
+          icon: iconButton(
+            imagePath: 'assets/images/VIP_rmbg.png',
+            text: 'Hội viên',
+            size: size,
+          ),
+        ),
+        IconButton(
+          onPressed: () => {context.push('/driver-list')},
+          icon: iconButton(
+            imagePath: 'assets/images/driver.png',
+            text: 'Tài xế',
+            size: size,
+          ),
+        ),
+      ],
     );
   }
 }
