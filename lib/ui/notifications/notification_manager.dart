@@ -1,13 +1,14 @@
 import 'package:booking_app/models/notification.dart';
 import 'package:flutter/material.dart';
 import 'package:booking_app/services/notification_service.dart';
+// import 'package:logger/logger.dart';
 
 class NotificationManager extends ChangeNotifier {
   final List<NotificationApp> _notifications = [];
   int _unreadCount = 0;
   List<NotificationApp> get notifications => List.unmodifiable(_notifications);
   int get unreadCount => _unreadCount;
-
+  // final logger = Logger();
   Future<void> loadNotifications(String userId) async {
     final notis = await NotificationService().getNotificationsOfUser(userId);
     _notifications.clear();
@@ -23,6 +24,7 @@ class NotificationManager extends ChangeNotifier {
     String message,
     String userId,
   ) async {
+    // logger.i(message);
     final n = NotificationApp(
       title: title,
       type: type,

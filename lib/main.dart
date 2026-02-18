@@ -29,6 +29,7 @@ import './ui/auth/auth_manager.dart';
 import 'ui/auth/register.dart';
 import './ui/notifications/notification_manager.dart';
 import './ui/notifications/notification_page.dart';
+import 'package:booking_app/ui/splash/splash_page.dart';
 
 void main() async {
   await dotenv.load();
@@ -71,14 +72,17 @@ class _AppRootState extends State<AppRoot> {
     context.read<AuthManager>().restoreLogin();
 
     _router = GoRouter(
+      initialLocation: '/splash',
       refreshListenable: context.read<AuthManager>(),
       redirect: (context, state) {
         final auth = context.read<AuthManager>();
         final loggedIn = auth.isLoggedIn;
         final _role = auth.user?.role;
-        // role = _role;
         final loggingIn = state.matchedLocation == '/login';
         final registering = state.matchedLocation == '/register';
+        final splashing = state.matchedLocation == '/splash';
+
+        if (splashing) return null;
 
         if (!loggedIn && !loggingIn && !registering) {
           return '/login';
@@ -95,6 +99,7 @@ class _AppRootState extends State<AppRoot> {
         return null;
       },
       routes: [
+        GoRoute(path: '/splash', builder: (_, __) => const SplashPage()),
         GoRoute(path: '/', builder: (_, __) => Customer()),
         GoRoute(path: '/login', builder: (_, __) => const LoginPage()),
         GoRoute(path: '/register', builder: (_, __) => const Register()),

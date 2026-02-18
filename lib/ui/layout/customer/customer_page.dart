@@ -249,18 +249,6 @@ class _CustomerState extends State<Customer> {
   }
 
   Widget _action(User user, String size) {
-    double _spacing = 20;
-    switch (size) {
-      case 'small':
-        _spacing = 20;
-        break;
-      case 'medium':
-        _spacing = 30;
-        break;
-      case 'large':
-        _spacing = 40;
-        break;
-    }
     return Wrap(
       children: [
         IconButton(

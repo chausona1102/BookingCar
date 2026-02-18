@@ -36,8 +36,7 @@ class _DriverListPage extends State<DriverListPage> {
           setState(() {
             _membership = record;
           });
-          print(record);
-                } catch (e) {
+        } catch (e) {
           print('Lỗi $e');
         }
       } else {

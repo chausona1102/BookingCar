@@ -1,13 +1,13 @@
 import 'dart:async';
 
-import 'package:logger/logger.dart';
+// import 'package:logger/logger.dart';
 import 'package:booking_app/models/booking.dart';
 import 'package:booking_app/models/driver.dart';
 import 'package:booking_app/services/driver_service.dart';
 import 'package:flutter/material.dart';
 
 class DriverManager extends ChangeNotifier {
-  final logger = Logger();
+  // final logger = Logger();
   final DriverService _driverService = DriverService();
 
   List<BookingModel> _bookingRequests = [];
@@ -84,7 +84,7 @@ class DriverManager extends ChangeNotifier {
   }
 
   Future<Driver?> fetchDriverByUserId({required String userId}) async {
-    logger.i(userId);
+    // logger.i(userId);
     return await _driverService.getDriverByUserId(userId);
   }
 
@@ -112,5 +112,9 @@ class DriverManager extends ChangeNotifier {
   void dispose() {
     _bookingRequestsSub?.cancel();
     super.dispose();
+  }
+
+  Future<bool> checkOnTrip(String driverId) async {
+    return await _driverService.checkOnTrip(driverId);
   }
 }

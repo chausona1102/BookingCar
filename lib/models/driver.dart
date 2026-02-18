@@ -21,6 +21,7 @@ class Driver {
   });
 
   factory Driver.fromRecord(RecordModel r) {
+    // ignore: unnecessary_cast
     final expanded = r.expand['user'] as List<RecordModel>?;
 
     if (expanded == null || expanded.isEmpty) {

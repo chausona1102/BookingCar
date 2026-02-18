@@ -45,7 +45,7 @@ class _RegisterState extends State<Register> {
     final lastname = _lastnameController.text.trim();
     final password = _passwordController.text.trim();
     final passwordConfirm = _passwordConfirmController.text.trim();
-  
+
     try {
       final authManager = context.read<AuthManager>();
 
@@ -179,9 +179,19 @@ class _RegisterState extends State<Register> {
                   ),
                 ),
                 const SizedBox(height: 24),
-
+                Center(
+                  child: const Text(
+                    'Ảnh đại diện',
+                    style: TextStyle(
+                      color: Colors.black54,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
                 GestureDetector(
-                  onTap: _pickAvatar,
+                  onTap: _pickAvatar, 
                   child: CircleAvatar(
                     radius: 45,
                     backgroundColor: Colors.green.shade200,

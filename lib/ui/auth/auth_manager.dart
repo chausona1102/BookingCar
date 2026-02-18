@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:booking_app/services/auth_service.dart';
@@ -5,6 +6,10 @@ import 'package:flutter/material.dart';
 import '../../models/user.dart';
 
 class AuthManager extends ChangeNotifier {
+  bool isRestored = false;
+  Completer<void> _completer = Completer();
+  Future<void> get restoredFuture => _completer.future;
+
   final AuthService _authService = AuthService();
   User? _user;
   // bool? get isLoggedIn => _authService.isLoggedIn;
@@ -20,11 +25,14 @@ class AuthManager extends ChangeNotifier {
     return success;
   }
 
-  void restoreLogin() {
+  Future<void> restoreLogin() async {
     if (_authService.isLoggedIn) {
       _user = _authService.currentUser;
       notifyListeners();
     }
+
+    isRestored = true;
+    _completer.complete();
   }
 
   Future<void> logout() async {

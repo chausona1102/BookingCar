@@ -257,7 +257,18 @@ class _BookingsRequestPageState extends State<BookingsRequestPage> {
             ),
             button('Nhận đơn', 'green', () async {
               final isPending = await bookingManager.checkPending(booking.id!);
+              final onTrip = await context.read<DriverManager>().checkOnTrip(
+                driverId!,
+              );
 
+              if (onTrip) {
+                snackBarLogger(
+                  context,
+                  'Bạn đang trong chuyến xe khác',
+                  'warning',
+                );
+                return;
+              }
               if (isPending) {
                 final addOke = await bookingManager.addDriverId(
                   booking.id!,
@@ -270,12 +281,12 @@ class _BookingsRequestPageState extends State<BookingsRequestPage> {
                     extra: {'booking': booking, 'driverid': driverId},
                   );
                   snackBarLogger(context, 'Bạn đã nhận đơn', 'success');
-                  // notiManager.addNotification(
-                  //   'Thông báo từ hệ thống',
-                  //   'success',
-                  //   'Bạn đã nhận đơn hàng',
-                  //   userId!,
-                  // );
+                  notiManager.addNotification(
+                    'Thông báo từ hệ thống',
+                    'success',
+                    'Bạn đã nhận đơn hàng',
+                    userId!,
+                  );
                 }
               }
             }),

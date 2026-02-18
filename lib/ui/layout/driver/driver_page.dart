@@ -2,11 +2,11 @@ import 'package:booking_app/models/driver.dart';
 import 'package:booking_app/models/user.dart';
 import 'package:booking_app/ui/auth/auth_manager.dart';
 import 'package:booking_app/ui/layout/driver/driver_manager.dart';
-import 'package:booking_app/ui/shared/iconButton.dart';
 import 'package:booking_app/ui/shared/navigation_bar_driver.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:booking_app/models/actionitems.dart';
 
 class DriverPage extends StatefulWidget {
   const DriverPage({super.key});
@@ -16,21 +16,17 @@ class DriverPage extends StatefulWidget {
 }
 
 class _DriverPage extends State<DriverPage> {
-  late final User? user;
-  late final String? userId;
   @override
   void initState() {
     super.initState();
-
     final authManager = context.read<AuthManager>();
     final user = authManager.user;
-
     if (user != null) {
-      final driverManager = context.read<DriverManager>();
-
-      driverManager.getDriverIdByUserId(user.id).then((driverId) {
+      context.read<DriverManager>().getDriverIdByUserId(user.id).then((
+        driverId,
+      ) {
         if (driverId.isNotEmpty) {
-          driverManager.listenDriverOnline(driverId);
+          context.read<DriverManager>().listenDriverOnline(driverId);
         }
       });
     }
@@ -41,159 +37,258 @@ class _DriverPage extends State<DriverPage> {
     final driverManager = context.watch<DriverManager>();
     final driver = driverManager.driver;
     final user = context.read<AuthManager>().user;
-
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
     if (driver == null) {
-      return Scaffold(
-        backgroundColor: Colors.green.shade50,
-        body: const Center(
-          child: CircularProgressIndicator(color: Colors.green),
+      return const Scaffold(
+        backgroundColor: Color(0xFF0F1923),
+        body: Center(
+          child: CircularProgressIndicator(color: Color(0xFF00C853)),
         ),
       );
     }
-    final isLandScape =
-        MediaQuery.of(context).orientation == Orientation.landscape;
 
     return Scaffold(
-      backgroundColor: Colors.green.shade50,
-      body: SingleChildScrollView(
-        child: isLandScape
-            ? Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(height: 30),
-                  _welcomSlogan(user),
-                  _actionToLive(driver),
-                  SizedBox(width: 500, child: _action(context, 'large', user)),
-                ],
-              )
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(height: 60),
-                  _welcomSlogan(user),
-                  const SizedBox(height: 20),
-                  _actionToLive(driver),
-                  const SizedBox(height: 20),
-                  SizedBox(width: 500, child: _action(context, 'medium', user)),
-                ],
+      backgroundColor: const Color(0xFFF4F7F5),
+      body: Column(
+        children: [
+          _buildHeader(user, driver),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: isLandscape
+                  ? const EdgeInsets.fromLTRB(20, 0, 20, 20)
+                  : const EdgeInsets.fromLTRB(20, 24, 20, 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [_buildQuickActions(context, user)],
               ),
+            ),
+          ),
+        ],
       ),
       bottomNavigationBar: DriverNavBar(),
     );
   }
 
-  Widget _welcomSlogan(user) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        const SizedBox(width: 20),
-        Image.asset('assets/images/turtle_success.png', width: 70, height: 70),
-        const SizedBox(width: 10),
-        Text(
-          user != null ? 'Xin chào, ${user.fullName}' : '',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-      ],
-    );
-  }
+  Widget _buildHeader(User? user, Driver driver) {
+    final isOnline = driver.isonline;
 
-  Widget _actionToLive(Driver driver) {
-    bool isOnline = driver.isonline;
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        Text(
-          'Trạng thái: ',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-          ),
+    return Container(
+      decoration: const BoxDecoration(
+        color: Color(0xFF0F1923),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(32),
+          bottomRight: Radius.circular(32),
         ),
-        if (isOnline) ...[
-          Text(
-            'Online',
-            style: TextStyle(
-              color: Colors.green,
-              fontWeight: FontWeight.w700,
-              fontSize: 20,
+      ),
+      padding: EdgeInsets.fromLTRB(
+        24,
+        MediaQuery.of(context).padding.top + 20,
+        24,
+        28,
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 58,
+            height: 58,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFF1E2D3D),
+              border: Border.all(
+                color: isOnline
+                    ? const Color(0xFF00C853)
+                    : Colors.grey.shade600,
+                width: 2.5,
+              ),
+            ),
+            child: ClipOval(
+              child: Image.asset(
+                'assets/images/turtle_success.png',
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Xin chào 👋',
+                  style: TextStyle(
+                    color: Colors.white54,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  user?.fullName ?? 'Tài xế',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: isOnline
+                  ? const Color(0xFF00C853).withOpacity(0.15)
+                  : Colors.red.shade900.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: isOnline ? const Color(0xFF00C853) : Colors.red.shade400,
+                width: 1,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 7,
+                  height: 7,
+                  decoration: BoxDecoration(
+                    color: isOnline
+                        ? const Color(0xFF00C853)
+                        : Colors.red.shade400,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  isOnline ? 'Online' : 'Offline',
+                  style: TextStyle(
+                    color: isOnline
+                        ? const Color(0xFF00C853)
+                        : Colors.red.shade400,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
-        if (!isOnline) ...[
-          Text(
-            'Offline',
-            style: TextStyle(
-              color: Colors.red,
-              fontWeight: FontWeight.w700,
-              fontSize: 20,
-            ),
-          ),
-        ],
-        const SizedBox(width: 20),
-      ],
+      ),
     );
   }
 
-  Widget _action(BuildContext context, String size, user) {
-    double _spacing = 20;
-    switch (size) {
-      case 'small':
-        _spacing = 20;
-        break;
-      case 'medium':
-        _spacing = 30;
-        break;
-      case 'large':
-        _spacing = 40;
-        break;
-    }
-    return Wrap(
-      alignment: WrapAlignment.center,
-      spacing: _spacing,
-      runSpacing: 20,
-      children: [
-        IconButton(
-          onPressed: () => context.push('/bookings-request'),
-          icon: iconButton(
-            imagePath: 'assets/images/list.png',
-            text: 'Đơn hàng',
-            size: size,
-          ),
+  Widget _buildQuickActions(BuildContext context, User? user) {
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+    final actions = [
+      ActionItem(
+        image: 'assets/images/list.png',
+        label: 'Đơn hàng',
+        subtitle: 'Xem yêu cầu mới',
+        color: const Color(0xFF1565C0),
+        onTap: () => context.push('/bookings-request'),
+      ),
+      ActionItem(
+        image: 'assets/images/car_driving_removebg.png',
+        label: 'Đang vận',
+        subtitle: 'Chuyến hiện tại',
+        color: const Color(0xFF00C853),
+        onTap: () => context.push('/driver-trip'),
+      ),
+      ActionItem(
+        image: 'assets/images/history.png',
+        label: 'Lịch sử',
+        subtitle: 'Các chuyến đã đi',
+        color: const Color(0xFFE65100),
+        onTap: () => context.push('/history'),
+      ),
+      ActionItem(
+        image: 'assets/images/driver.png',
+        label: 'Cá nhân',
+        subtitle: 'Thông tin tài xế',
+        color: const Color(0xFF6A1B9A),
+        onTap: () => context.push('/profile'),
+      ),
+      ActionItem(
+        image: 'assets/images/setting.png',
+        label: 'Cài đặt',
+        subtitle: 'Tùy chỉnh app',
+        color: const Color(0xFF37474F),
+        onTap: () => context.push('/setting', extra: user?.id),
+      ),
+    ];
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: actions.length,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: isLandscape ? 4 : 2,
+        crossAxisSpacing: 14,
+        mainAxisSpacing: 14,
+        childAspectRatio: 1.1,
+      ),
+      itemBuilder: (context, index) =>
+          _buildActionCard(actions[index], isLandscape),
+    );
+  }
+
+  Widget _buildActionCard(ActionItem item, bool isLandscape) {
+    return GestureDetector(
+      onTap: item.onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: item.color.withOpacity(0.12),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
+          ],
         ),
-        IconButton(
-          onPressed: () => context.push('/driver-trip'),
-          icon: iconButton(
-            imagePath: 'assets/images/car_driving_removebg.png',
-            text: 'Đang vận',
-            size: size,
-          ),
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: isLandscape ? 70 : 48,
+              height: isLandscape ? 70 : 48,
+              decoration: BoxDecoration(
+                color: item.color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: Image.asset(item.image, fit: BoxFit.contain),
+              ),
+            ),
+            const Spacer(),
+            Text(
+              item.label,
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w800,
+                color: Color(0xFF0F1923),
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              item.subtitle,
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey.shade500,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ),
-        IconButton(
-          onPressed: () => context.push('/history'),
-          icon: iconButton(
-            imagePath: 'assets/images/history.png',
-            text: 'Lịch sử',
-            size: size,
-          ),
-        ),
-        IconButton(
-          onPressed: () => context.push('/profile'),
-          icon: iconButton(
-            imagePath: 'assets/images/driver.png',
-            text: 'Cá nhân',
-            size: size,
-          ),
-        ),
-        IconButton(
-          onPressed: () => context.push('/setting', extra: user.id),
-          icon: iconButton(
-            imagePath: 'assets/images/setting.png',
-            text: 'Cài đặt',
-            size: size,
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

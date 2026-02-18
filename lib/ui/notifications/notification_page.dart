@@ -33,7 +33,6 @@ class _NotificationPageState extends State<NotificationPage> {
     final myNotifications = notificationManager.notificationsOfUser(
       currentUserId!,
     );
-    print(myNotifications);
     return Scaffold(
       appBar: myAppBar(context, 'Thông báo'),
       backgroundColor: Colors.green.shade50,

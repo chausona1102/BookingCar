@@ -1,14 +1,12 @@
 import 'dart:async';
-
 import 'package:booking_app/models/booking.dart';
 import 'package:booking_app/models/user.dart';
 import 'package:booking_app/ui/auth/auth_manager.dart';
 import 'package:booking_app/ui/auth/customer_manager.dart';
 import 'package:booking_app/ui/layout/customer/booking_manager.dart';
 import 'package:booking_app/ui/layout/driver/driver_manager.dart';
-import 'package:booking_app/ui/shared/button.dart';
 import 'package:booking_app/ui/shared/iconSvg.dart';
-import 'package:booking_app/ui/shared/myAppBar.dart';
+import 'package:booking_app/ui/shared/myAppBarPro.dart';
 import 'package:booking_app/ui/shared/showDialog.dart';
 import 'package:booking_app/ui/shared/snackBarLogger.dart';
 import 'package:booking_app/utils/myFunction.dart';
@@ -27,9 +25,9 @@ class DriverTripTrackingPage extends StatefulWidget {
   State<DriverTripTrackingPage> createState() => _DriverTripTrackingPageState();
 }
 
-class _DriverTripTrackingPageState extends State<DriverTripTrackingPage> {
+class _DriverTripTrackingPageState extends State<DriverTripTrackingPage>
+    with SingleTickerProviderStateMixin {
   GoogleMapController? _mapController;
-  BookingModel? booking;
   StreamSubscription<Position>? _positionStream;
 
   Set<Polyline> _polylines = {};
@@ -41,16 +39,30 @@ class _DriverTripTrackingPageState extends State<DriverTripTrackingPage> {
 
   bool _routeDrawn = false;
 
+  late AnimationController _sheetAnimController;
+  late Animation<Offset> _sheetSlide;
+  bool _sheetVisible = false;
+
   @override
   void initState() {
     super.initState();
 
+    _sheetAnimController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 350),
+    );
+    _sheetSlide = Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
+        .animate(
+          CurvedAnimation(
+            parent: _sheetAnimController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
+
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final driverManager = context.read<DriverManager>();
       final userId = context.read<AuthManager>().currentUserId;
-
       final driverId = await driverManager.getDriverIdByUserId(userId!);
-
       driverManager.listenBookingTracing(driverId);
     });
 
@@ -58,24 +70,36 @@ class _DriverTripTrackingPageState extends State<DriverTripTrackingPage> {
     _listenToLocation();
   }
 
+  @override
+  void dispose() {
+    _positionStream?.cancel();
+    _sheetAnimController.dispose();
+    super.dispose();
+  }
+
+  void _toggleSheet() {
+    if (_sheetVisible) {
+      _sheetAnimController.reverse();
+    } else {
+      _sheetAnimController.forward();
+    }
+    setState(() => _sheetVisible = !_sheetVisible);
+  }
+
   Future<void> _getCurrentLocation() async {
     final position = await Geolocator.getCurrentPosition(
       desiredAccuracy: LocationAccuracy.high,
     );
-
     final latLng = LatLng(position.latitude, position.longitude);
-
     setState(() {
       _currentLocation = latLng;
       _updateDriverMarker(latLng);
     });
-
     _drawAllRoutesOnce();
   }
 
   void _updateDriverMarker(LatLng latLng) {
     _markers.removeWhere((m) => m.markerId.value == 'driver');
-
     _markers.add(
       Marker(
         markerId: const MarkerId('driver'),
@@ -93,7 +117,6 @@ class _DriverTripTrackingPageState extends State<DriverTripTrackingPage> {
   }) async {
     final apiKey = dotenv.env['API_KEY']!;
     final polylinePoints = PolylinePoints();
-
     final result = await polylinePoints.getRouteBetweenCoordinates(
       googleApiKey: apiKey,
       request: PolylineRequest(
@@ -102,30 +125,26 @@ class _DriverTripTrackingPageState extends State<DriverTripTrackingPage> {
         mode: TravelMode.driving,
       ),
     );
-
     if (result.points.isEmpty) return;
-
-    final polyline = Polyline(
-      polylineId: PolylineId(id),
-      color: color,
-      width: 5,
-      points: result.points
-          .map((p) => LatLng(p.latitude, p.longitude))
-          .toList(),
-    );
-
     setState(() {
-      _polylines.add(polyline);
+      _polylines.add(
+        Polyline(
+          polylineId: PolylineId(id),
+          color: color,
+          width: 5,
+          points: result.points
+              .map((p) => LatLng(p.latitude, p.longitude))
+              .toList(),
+        ),
+      );
     });
   }
 
   void _setPickupAndDropoffMarkers() {
     if (_pickupLatLng == null || _dropoffLatLng == null) return;
-
     _markers.removeWhere(
       (m) => m.markerId.value == 'pickup' || m.markerId.value == 'dropoff',
     );
-
     _markers.addAll({
       Marker(
         markerId: const MarkerId('pickup'),
@@ -148,43 +167,293 @@ class _DriverTripTrackingPageState extends State<DriverTripTrackingPage> {
         _pickupLatLng == null ||
         _dropoffLatLng == null)
       return;
-
     await _drawRoute(
       from: _currentLocation!,
       to: _pickupLatLng!,
       id: 'toPickup',
       color: Colors.orange,
     );
-
     await _drawRoute(
       from: _pickupLatLng!,
       to: _dropoffLatLng!,
       id: 'toDropoff',
-      color: Colors.green,
+      color: const Color(0xFF00C853),
     );
-
     _routeDrawn = true;
   }
 
   void _listenToLocation() {
-    const locationSettings = LocationSettings(
-      accuracy: LocationAccuracy.high,
-      distanceFilter: 10,
-    );
-
     _positionStream =
-        Geolocator.getPositionStream(locationSettings: locationSettings).listen(
-          (position) {
-            final latLng = LatLng(position.latitude, position.longitude);
+        Geolocator.getPositionStream(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+            distanceFilter: 10,
+          ),
+        ).listen((position) {
+          final latLng = LatLng(position.latitude, position.longitude);
+          setState(() {
+            _currentLocation = latLng;
+            _updateDriverMarker(latLng);
+          });
+          _mapController?.animateCamera(CameraUpdate.newLatLng(latLng));
+        });
+  }
 
-            setState(() {
-              _currentLocation = latLng;
-              _updateDriverMarker(latLng);
-            });
+  String _mapStatus(String status) {
+    switch (status) {
+      case 'accepted':
+        return 'Đang đến điểm đón';
+      case 'ontrip':
+        return 'Đang trên chuyến xe';
+      case 'completed':
+        return 'Chuyến đã hoàn thành';
+      case 'cancelled':
+        return 'Chuyến bị hủy';
+      default:
+        return 'Đang xử lý...';
+    }
+  }
 
-            _mapController?.animateCamera(CameraUpdate.newLatLng(latLng));
-          },
-        );
+  Widget _buildToggleButton(bool isLandscape) {
+    return Positioned(
+      bottom: isLandscape ? 10 : 40,
+      left: 0,
+      right: isLandscape ? MediaQuery.of(context).size.width * .6 : 0,
+      child: Center(
+        child: GestureDetector(
+          onTap: _toggleSheet,
+          behavior: HitTestBehavior.opaque,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 250),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+            decoration: BoxDecoration(
+              color: _sheetVisible ? Colors.black87 : const Color(0xFF00C853),
+              borderRadius: BorderRadius.circular(32),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.25),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (isLandscape) ...[
+                  Icon(
+                    _sheetVisible
+                        ? Icons.keyboard_arrow_down
+                        : Icons.receipt_long_rounded,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ] else ...[
+                  Icon(
+                    _sheetVisible
+                        ? Icons.keyboard_arrow_down
+                        : Icons.receipt_long_rounded,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    _sheetVisible ? 'Đóng thông tin' : 'Xem thông tin chuyến',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 15,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomSheet(
+    BuildContext context,
+    BookingModel booking,
+    String pickupName,
+    String dropoffName,
+    CustomerManager customerManager,
+    BookingManager bookingManager,
+    MyFunctions myFunctions,
+  ) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(12, 0, 12, 100),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.18),
+            blurRadius: 24,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            margin: const EdgeInsets.only(top: 12),
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade300,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.62,
+            ),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _infoRow(
+                    icon: 'assets/icons/location.svg',
+                    iconColor: 'red',
+                    title: 'Điểm đón',
+                    value: pickupName,
+                  ),
+                  const SizedBox(height: 14),
+                  _infoRow(
+                    icon: 'assets/icons/location.svg',
+                    iconColor: 'green',
+                    title: 'Điểm đến',
+                    value: dropoffName,
+                  ),
+                  const SizedBox(height: 14),
+
+                  FutureBuilder<User?>(
+                    future: customerManager.fetchUserById(booking.userId),
+                    builder: (context, snap) {
+                      if (!snap.hasData) {
+                        return _infoRow(
+                          icon: 'assets/icons/user.svg',
+                          iconColor: 'black',
+                          title: 'Khách hàng',
+                          value: 'Đang tải...',
+                        );
+                      }
+                      final user = snap.data!;
+                      return Column(
+                        children: [
+                          _infoRow(
+                            icon: 'assets/icons/user.svg',
+                            iconColor: 'black',
+                            title: 'Khách hàng',
+                            value: user.fullName,
+                          ),
+                          const SizedBox(height: 14),
+                          _infoRow(
+                            icon: 'assets/icons/phone.svg',
+                            iconColor: 'black',
+                            title: 'Số điện thoại',
+                            value: user.phoneNumber,
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    child: Divider(height: 1),
+                  ),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Tổng tiền',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black54,
+                        ),
+                      ),
+                      Text(
+                        '${myFunctions.convertToVND(booking.price.toInt().toString())} ₫',
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF00C853),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  if (booking.status == 'accepted')
+                    _actionButton(
+                      label: 'Đón khách',
+                      icon: Icons.directions_car_rounded,
+                      color: Colors.blue,
+                      onTap: () async {
+                        final confirm = await showMyDialog(
+                          context,
+                          'Xác nhận',
+                          'Xác nhận khách đã lên xe',
+                          'assets/images/turtle_success.png',
+                        );
+                        if (confirm != true) return;
+                        final ok = await bookingManager.updateBookingStatus(
+                          booking.id!,
+                          'ontrip',
+                        );
+                        snackBarLogger(
+                          context,
+                          ok ? 'Gét gô' : 'Lỗi',
+                          ok ? 'success' : 'warning',
+                        );
+                      },
+                    ),
+
+                  if (booking.status == 'ontrip')
+                    _actionButton(
+                      label: 'Hoàn thành chuyến',
+                      icon: Icons.check_circle_outline_rounded,
+                      color: const Color(0xFF00C853),
+                      onTap: () async {
+                        final confirm = await showMyDialog(
+                          context,
+                          'Xác nhận',
+                          'Xác nhận hoàn thành chuyến',
+                          'assets/images/turtle_success.png',
+                        );
+                        if (confirm != true) return;
+                        final ok = await bookingManager.updateBookingStatus(
+                          booking.id!,
+                          'completed',
+                        );
+                        if (ok) {
+                          snackBarLogger(
+                            context,
+                            'Mang chuyến tiếp theo đến đây',
+                            'success',
+                          );
+                          context.push('/payment-trip-page', extra: booking);
+                        } else {
+                          snackBarLogger(context, 'Lỗi', 'warning');
+                        }
+                      },
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -194,27 +463,41 @@ class _DriverTripTrackingPageState extends State<DriverTripTrackingPage> {
     final myFunctions = context.watch<MyFunctions>();
     final isLandscape =
         MediaQuery.of(context).orientation == Orientation.landscape;
-
     return Consumer<DriverManager>(
       builder: (context, driverManager, child) {
         final booking = driverManager.currentBooking;
 
         if (booking == null) {
           return Scaffold(
-            backgroundColor: Colors.green.shade50,
-            appBar: myAppBar(context, 'Theo dõi cuốc xe'),
-            body: const Center(
-              child: Text(
-                'Bạn chưa có chuyến đang chạy',
-                style: TextStyle(fontSize: 18),
+            extendBodyBehindAppBar: true,
+            appBar: myAppBarPro(context, 'Theo dõi cuốc xe'),
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.directions_car_outlined,
+                    size: 80,
+                    color: Colors.grey.shade300,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Chưa có chuyến đang chạy',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black54,
+                    ),
+                  ),
+                ],
               ),
             ),
           );
         }
 
         return Scaffold(
-          appBar: myAppBar(context, 'Theo dõi cuốc xe'),
-          backgroundColor: Colors.green.shade50,
+          extendBodyBehindAppBar: true,
+          appBar: myAppBarPro(context, 'Theo dõi cuốc xe'),
           body: FutureBuilder(
             future: Future.wait([
               bookingManager.getLocationById(id: booking.pickupLocationId),
@@ -232,7 +515,6 @@ class _DriverTripTrackingPageState extends State<DriverTripTrackingPage> {
                 double.parse(pickup.latitude),
                 double.parse(pickup.longitude),
               );
-
               final dropoffLatLng = LatLng(
                 double.parse(dropoff.latitude),
                 double.parse(dropoff.longitude),
@@ -246,205 +528,53 @@ class _DriverTripTrackingPageState extends State<DriverTripTrackingPage> {
                 _drawAllRoutesOnce();
               });
 
-              return isLandscape
-                  ? Row(
-                      children: [
-                        Expanded(flex: 6, child: _buildMap(pickupLatLng)),
-                        Expanded(
-                          flex: 4,
-                          child: _buildTripInfo(
-                            booking,
-                            pickup.placeName,
-                            dropoff.placeName,
-                            booking.price,
-                            customerManager,
-                            bookingManager,
-                            myFunctions,
-                          ),
-                        ),
-                      ],
-                    )
-                  : Column(
-                      children: [
-                        Expanded(flex: 6, child: _buildMap(pickupLatLng)),
-                        Expanded(
-                          flex: 4,
-                          child: _buildTripInfo(
-                            booking,
-                            pickup.placeName,
-                            dropoff.placeName,
-                            booking.price,
-                            customerManager,
-                            bookingManager,
-                            myFunctions,
-                          ),
-                        ),
-                      ],
-                    );
+              return Stack(
+                children: [
+                  GoogleMap(
+                    initialCameraPosition: CameraPosition(
+                      target: pickupLatLng,
+                      zoom: 16,
+                    ),
+                    polylines: _polylines,
+                    markers: _markers,
+                    myLocationButtonEnabled: false,
+                    zoomControlsEnabled: false,
+                    onMapCreated: (controller) => _mapController = controller,
+                  ),
+
+                  Positioned(
+                    bottom: isLandscape ? 10 : 120,
+                    left: 0,
+                    right: 0,
+                    child: Center(
+                      child: _statusBadge(_mapStatus(booking.status)),
+                    ),
+                  ),
+
+                  SlideTransition(
+                    position: _sheetSlide,
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: _buildBottomSheet(
+                        context,
+                        booking,
+                        pickup.placeName,
+                        dropoff.placeName,
+                        customerManager,
+                        bookingManager,
+                        myFunctions,
+                      ),
+                    ),
+                  ),
+
+                  _buildToggleButton(isLandscape),
+                ],
+              );
             },
           ),
         );
       },
     );
-  }
-
-  Widget _buildMap(LatLng pickupLatLng) {
-    return GoogleMap(
-      initialCameraPosition: CameraPosition(target: pickupLatLng, zoom: 16),
-      polylines: _polylines,
-      markers: _markers,
-      onMapCreated: (controller) {
-        _mapController = controller;
-      },
-    );
-  }
-
-  Widget _buildTripInfo(
-    BookingModel booking,
-    String pickupName,
-    String dropoffName,
-    double amount,
-    CustomerManager customerManager,
-    BookingManager bookingManager,
-    MyFunctions myFunctions,
-  ) { 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(2),
-      child: Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            children: [
-              _infoRow(
-                icon: 'assets/icons/location.svg',
-                iconColor: 'red',
-                title: 'Điểm đón',
-                value: pickupName,
-              ),
-              const SizedBox(height: 12),
-              _infoRow(
-                icon: 'assets/icons/location.svg',
-                iconColor: 'green',
-                title: 'Điểm đến',
-                value: dropoffName,
-              ),
-              const SizedBox(height: 12),
-              FutureBuilder<User?>(
-                future: customerManager.fetchUserById(booking.userId),
-                builder: (context, snap) {
-                  if (!snap.hasData) {
-                    return _infoRow(
-                      icon: 'assets/icons/user.svg',
-                      iconColor: 'black',
-                      title: 'Khách hàng',
-                      value: 'Đang tải...',
-                    );
-                  }
-
-                  final user = snap.data!;
-
-                  return Column(
-                    children: [
-                      _infoRow(
-                        icon: 'assets/icons/user.svg',
-                        iconColor: 'black',
-                        title: 'Khách hàng',
-                        value: user.fullName,
-                      ),
-                      const SizedBox(height: 12),
-                      _infoRow(
-                        icon: 'assets/icons/phone.svg',
-                        iconColor: 'black',
-                        title: 'Số điện thoại',
-                        value: user.phoneNumber,
-                      ),
-                    ],
-                  );
-                },
-              ),
-              const Divider(height: 32),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Tổng tiền',
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
-                  Text(
-                    '${myFunctions.convertToVND(amount.toInt().toString())} đ',
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.green,
-                    ),
-                  ),
-                ],
-              ),
-              const Divider(thickness: 2),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (booking.status == 'accepted') ...[
-                    button('Đón khách', 'green', () async {
-                      final confirm = await showMyDialog(
-                        context,
-                        'Xác nhận',
-                        'Xác nhận khách đã lên xe',
-                        'assets/images/turtle_success.png',
-                      );
-                      if (confirm != true) return;
-                      final isOnTrip = await bookingManager.updateBookingStatus(
-                        booking.id!,
-                        'ontrip',
-                      );
-                      if (isOnTrip) {
-                        snackBarLogger(context, 'Gét gô', 'success');
-                      } else {
-                        snackBarLogger(context, 'Lỗi', 'warning');
-                      }
-                    }),
-                  ],
-                  if (booking.status == 'ontrip') ...[
-                    button('Hoàn thành', 'green', () async {
-                      final confirm = await showMyDialog(
-                        context,
-                        'Xác nhận',
-                        'Xác nhận hoàn thành chuyến',
-                        'assets/images/turtle_success.png',
-                      );
-                      if (confirm != true) return;
-                      final isCompleted = await bookingManager
-                          .updateBookingStatus(booking.id!, 'completed');
-                      if (isCompleted) {
-                        snackBarLogger(
-                          context,
-                          'Mang chuyến tiếp theo đến đây',
-                          'success',
-                        );
-                        context.push('/payment-trip-page', extra: booking);
-                      } else {
-                        snackBarLogger(context, 'Lỗi', 'warning');
-                      }
-                    }),
-                  ],
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  @override
-  void dispose() {
-    _positionStream?.cancel();
-    super.dispose();
   }
 }
 
@@ -466,19 +596,112 @@ Widget _infoRow({
             Text(
               title,
               style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Colors.black54,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: Colors.black45,
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 3),
             Text(
               value,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: Colors.black87,
+              ),
             ),
           ],
         ),
       ),
     ],
+  );
+}
+
+Widget _actionButton({
+  required String label,
+  required IconData icon,
+  required Color color,
+  required VoidCallback onTap,
+}) {
+  return SizedBox(
+    width: double.infinity,
+    child: ElevatedButton(
+      onPressed: onTap,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color,
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        elevation: 0,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 18),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+Widget _statusBadge(String status) {
+  Color bgColor;
+  IconData icon;
+
+  switch (status) {
+    case 'Đang đến điểm đón':
+      bgColor = Colors.orange;
+      icon = Icons.navigation_rounded;
+      break;
+    case 'Đang trên chuyến xe':
+      bgColor = const Color(0xFF00C853);
+      icon = Icons.directions_car_rounded;
+      break;
+    case 'Chuyến đã hoàn thành':
+      bgColor = Colors.blue;
+      icon = Icons.check_circle_outline_rounded;
+      break;
+    case 'Chuyến bị hủy':
+      bgColor = Colors.red;
+      icon = Icons.cancel_outlined;
+      break;
+    default:
+      bgColor = Colors.grey;
+      icon = Icons.access_time_rounded;
+  }
+
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(32),
+      boxShadow: [
+        BoxShadow(
+          color: bgColor.withOpacity(0.3),
+          blurRadius: 12,
+          offset: const Offset(0, 4),
+        ),
+      ],
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, color: bgColor, size: 18),
+        const SizedBox(width: 8),
+        Text(
+          status,
+          style: TextStyle(
+            fontSize: 14,
+            color: bgColor,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
+    ),
   );
 }

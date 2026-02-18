@@ -25,7 +25,7 @@ class PaymentPage extends StatefulWidget {
 class _PaymentState extends State<PaymentPage> {
   var bankname = 'Agribank';
   var bankcode = '10890013';
-  Membership? _membership;
+  Membership? membership;
   bool _isMemberShips = false;
   String? plan;
   String? discountPercent;
@@ -52,7 +52,7 @@ class _PaymentState extends State<PaymentPage> {
           final record = await customerManager.getMembership(user: userId);
           if (!mounted) return;
           setState(() {
-            _membership = record;
+            membership = record;
             _isMemberShips = true;
           });
           // print(records); // có record

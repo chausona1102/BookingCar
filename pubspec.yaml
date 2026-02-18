@@ -79,6 +79,7 @@ flutter:
     - .env
     - assets/icons/
     - assets/gifs/
+    - assets/images/logo.png
   # - assets/icons/
   # To add assets to your application, add an assets section, like this:
   # assets:
@@ -113,5 +114,5 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/icon/app_icon.png"
+  image_path: "assets/images/logo.png" 
   min_sdk_android: 21

@@ -237,4 +237,22 @@ class DriverService {
 
     return controller.stream;
   }
+
+  Future<bool> checkOnTrip(String driverId) async {
+    try {
+      final records = await pb
+          .collection('bookings')
+          .getList(
+            page: 1,
+            perPage: 1,
+            filter:
+                "driver = '$driverId' && status != 'completed' && status != 'cancelled'",
+          );
+
+      return records.items.isNotEmpty;
+    } catch (e) {
+      logger.e('Error checkOnTrip', error: e);
+      return false;
+    }
+  }
 }

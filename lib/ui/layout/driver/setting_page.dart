@@ -1,6 +1,7 @@
 import 'package:booking_app/models/driver.dart';
 import 'package:booking_app/ui/layout/driver/driver_manager.dart';
-import 'package:booking_app/ui/shared/myAppBar.dart';
+import 'package:booking_app/ui/shared/driverAppBar.dart';
+import 'package:booking_app/ui/shared/headerAppbar.dart';
 import 'package:booking_app/ui/shared/snackBarLogger.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -24,13 +25,10 @@ class _SettingPageState extends State<SettingPage> {
 
   Future<void> _loadDriver() async {
     if (widget.userId == null) return;
-
     final result = await context.read<DriverManager>().fetchDriverByUserId(
       userId: widget.userId!,
     );
-
     if (!mounted) return;
-
     setState(() {
       driver = result;
       isLoading = false;
@@ -39,131 +37,150 @@ class _SettingPageState extends State<SettingPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isLandScape =
-        MediaQuery.of(context).orientation == Orientation.landscape;
     final driverManager = context.watch<DriverManager>();
+
     if (isLoading) {
-      return Scaffold(
-        appBar: myAppBar(context, 'Cài đặt'),
-        body: const Center(child: CircularProgressIndicator()),
+      return const Scaffold(
+        backgroundColor: Color(0xFF0F1923),
+        body: Center(
+          child: CircularProgressIndicator(color: Color(0xFF00C853)),
+        ),
       );
     }
 
     if (driver == null) {
       return Scaffold(
-        appBar: myAppBar(context, 'Cài đặt'),
-        body: const Center(child: Text('Không tìm thấy tài xế')),
+        backgroundColor: const Color(0xFFF4F7F5),
+        appBar: driverAppBar('Cài đặt'),
+        body: const Center(
+          child: Text(
+            'Không tìm thấy tài xế',
+            style: TextStyle(color: Colors.black54, fontSize: 16),
+          ),
+        ),
       );
     }
 
     return Scaffold(
-      backgroundColor: Colors.green.shade50,
-      appBar: myAppBar(context, 'Cài đặt'),
-      body: isLandScape
-          ? Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 10),
-                _avatar(driver!.user.avatarUrl, 'medium'),
-                const SizedBox(height: 10),
-                _info(driver!, driverManager),
-              ],
-            )
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 20),
-                _avatar(driver!.user.avatarUrl, 'large'),
-                const SizedBox(height: 20),
-                _info(driver!, driverManager),
-              ],
+      backgroundColor: const Color(0xFFF4F7F5),
+      body: Column(
+        children: [
+          buildHeader(context, 'Cài đặt'),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 4),
+                  _sectionLabel('Trạng thái hoạt động'),
+                  const SizedBox(height: 10),
+                  _buildOnlineToggle(driver!, driverManager),
+                ],
+              ),
             ),
-    );
-  }
-
-  Widget _avatar(avatar, size) {
-    double _size = 70;
-    switch (size) {
-      case 'small':
-        _size = 70;
-        break;
-      case 'medium':
-        _size = 80;
-        break;
-      case 'large':
-        _size = 100;
-        break;
-      default:
-        _size = 70;
-    }
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(99),
-          child: Image.network(
-            avatar,
-            width: _size,
-            height: _size,
-            fit: BoxFit.cover,
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
-  Widget _info(Driver driver, DriverManager driverManager) {
-    return Padding(
-      padding: EdgeInsetsGeometry.only(top: 5, left: 5, bottom: 5, right: 5),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(35),
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          color: const Color.fromARGB(255, 196, 195, 195),
-          child: Row(
-            children: [
-              Image.asset('assets/images/setting.png', width: 70),
-              const SizedBox(width: 20),
-              Expanded(
-                child: Text(
-                  'Bật chế độ online',
+  Widget _sectionLabel(String label) {
+    return Text(
+      label.toUpperCase(),
+      style: TextStyle(
+        fontSize: 11,
+        fontWeight: FontWeight.w700,
+        color: Colors.grey.shade500,
+        letterSpacing: 1.2,
+      ),
+    );
+  }
+
+  Widget _buildOnlineToggle(Driver driver, DriverManager driverManager) {
+    final isOnline = driver.isonline;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: (isOnline ? const Color(0xFF00C853) : Colors.grey)
+                .withOpacity(0.12),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+      child: Row(
+        children: [
+          Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              color: (isOnline ? const Color(0xFF00C853) : Colors.grey.shade400)
+                  .withOpacity(0.12),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(
+              isOnline ? Icons.wifi_rounded : Icons.wifi_off_rounded,
+              color: isOnline ? const Color(0xFF00C853) : Colors.grey.shade400,
+              size: 26,
+            ),
+          ),
+          const SizedBox(width: 16),
+
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Chế độ online',
                   style: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 18,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF0F1923),
                   ),
                 ),
-              ),
-              Switch(
-                value: driver.isonline,
-                activeColor: Colors.green,
-                activeThumbColor: Colors.white,
-                activeTrackColor: Colors.green,
-                inactiveThumbColor: Colors.black45,
-                // inactiveTrackColor: Colors.white,
-                onChanged: (value) async {
-                  setState(() {
-                    driver.isonline = value;
-                  });
-                  final update = await driverManager.updateIsOnline(driver.id);
-                  if (!update) {
-                    setState(() {
-                      driver.isonline = !value;
-                    });
-                    snackBarLogger(context, 'Cập nhật thất bại!', 'error');
-                  } else {
-                    if (value) {
-                      snackBarLogger(context, 'Đã online', 'success');
-                    } else {
-                      snackBarLogger(context, 'Đã offline', 'success');
-                    }
-                  }
-                },
-              ),
-            ],
+                const SizedBox(height: 3),
+                Text(
+                  isOnline ? 'Đang nhận chuyến mới' : 'Không nhận chuyến mới',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isOnline
+                        ? const Color(0xFF00C853)
+                        : Colors.grey.shade500,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
+
+          Switch(
+            value: isOnline,
+            activeColor: Colors.white,
+            activeTrackColor: const Color(0xFF00C853),
+            inactiveThumbColor: Colors.white,
+            inactiveTrackColor: Colors.grey.shade300,
+            onChanged: (value) async {
+              setState(() => driver.isonline = value);
+              final ok = await driverManager.updateIsOnline(driver.id);
+              if (!ok) {
+                setState(() => driver.isonline = !value);
+                snackBarLogger(context, 'Cập nhật thất bại!', 'error');
+              } else {
+                snackBarLogger(
+                  context,
+                  value ? 'Đã online' : 'Đã offline',
+                  'success',
+                );
+              }
+            },
+          ),
+        ],
       ),
     );
   }

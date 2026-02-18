@@ -117,7 +117,7 @@ class _BookingMapState extends State<BookingMap> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 400,
+      height: MediaQuery.of(context).size.height,
       child: GoogleMap(
         initialCameraPosition: const CameraPosition(
           target: LatLng(10.762622, 106.660172),

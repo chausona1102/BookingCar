@@ -1,8 +1,7 @@
 import 'package:booking_app/models/membership.dart';
 import 'package:booking_app/models/user.dart';
-import 'package:booking_app/ui/shared/button.dart';
 import 'package:booking_app/ui/shared/iconSvg.dart';
-import 'package:booking_app/ui/shared/myAppBar.dart';
+import 'package:booking_app/ui/shared/myAppBarPro.dart';
 import 'package:booking_app/ui/shared/snackBarLogger.dart';
 import 'package:booking_app/ui/shared/svgButtonPro.dart';
 import 'package:booking_app/utils/myFunction.dart';
@@ -24,12 +23,13 @@ class BookingPage extends StatefulWidget {
   State<BookingPage> createState() => _BookingPageState();
 }
 
-class _BookingPageState extends State<BookingPage> {
+class _BookingPageState extends State<BookingPage>
+    with SingleTickerProviderStateMixin {
   LatLng? _destination;
   LatLng? _currentLocation;
   String? _placeNameDest = 'Vui lòng chọn địa điểm muốn đến';
   String? _placeNameSource = 'Không tìm thấy địa chỉ của bạn';
-  GoogleMapController? _mapController;
+  GoogleMapController? mapController;
   double? _distanceKm;
   double? _paymentForDistance;
   late String? type;
@@ -41,14 +41,31 @@ class _BookingPageState extends State<BookingPage> {
   LocationModel? pickupLocation;
   LocationModel? dropoffLocation;
   final logger = Logger();
+
+  late AnimationController _sheetAnimController;
+  late Animation<Offset> _sheetSlide;
+  bool _sheetVisible = false;
+
   @override
   void initState() {
     super.initState();
+
+    _sheetAnimController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 350),
+    );
+    _sheetSlide = Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
+        .animate(
+          CurvedAnimation(
+            parent: _sheetAnimController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
+
     type = widget.data?['type'] ?? 'car';
     memberInfo = widget.data?['memberInfo'] as Membership?;
     if (memberInfo != null) {
       disCount = (memberInfo!.discountPercent) / 100;
-      logger.i(disCount);
     } else {
       disCount = 1;
     }
@@ -56,6 +73,21 @@ class _BookingPageState extends State<BookingPage> {
     userId = user!.id;
     _getCurrentLocation();
     _checkTracing(userId);
+  }
+
+  @override
+  void dispose() {
+    _sheetAnimController.dispose();
+    super.dispose();
+  }
+
+  void _toggleSheet() {
+    if (_sheetVisible) {
+      _sheetAnimController.reverse();
+    } else {
+      _sheetAnimController.forward();
+    }
+    setState(() => _sheetVisible = !_sheetVisible);
   }
 
   Future<void> _checkTracing(String userId) async {
@@ -69,10 +101,7 @@ class _BookingPageState extends State<BookingPage> {
 
   Future<void> _getCurrentLocation() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      debugPrint('GPS chưa bật');
-      return;
-    }
+    if (!serviceEnabled) return;
     final position = await Geolocator.getCurrentPosition(
       desiredAccuracy: LocationAccuracy.high,
     );
@@ -84,22 +113,369 @@ class _BookingPageState extends State<BookingPage> {
     });
   }
 
+  void _recalcPayment() {
+    if (_distanceKm == null) return;
+    setState(() {
+      if (memberInfo != null &&
+          memberInfo!.discountPercent > 0 &&
+          !memberInfo!.isExpired) {
+        _paymentForDistance = context
+            .read<BookingManager>()
+            .calculatePaymentWithDisCount(_distanceKm, type, disCount);
+      } else {
+        _paymentForDistance = context.read<BookingManager>().calculatePayment(
+          _distanceKm,
+          type,
+        );
+      }
+      amount = _paymentForDistance;
+    });
+  }
+
+  Widget _buildToggleButton() {
+    return Positioned(
+      bottom: 40,
+      left: 0,
+      right: 0,
+      child: Center(
+        child: GestureDetector(
+          onTap: _toggleSheet,
+          behavior: HitTestBehavior.opaque,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 250),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+            decoration: BoxDecoration(
+              color: _sheetVisible ? Colors.black87 : Colors.green.shade500,
+              borderRadius: BorderRadius.circular(32),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.25),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  _sheetVisible
+                      ? Icons.keyboard_arrow_down
+                      : Icons.receipt_long_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  _sheetVisible ? 'Đóng thông tin' : 'Xem thông tin đặt xe',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPriceBadge(MyFunctions myFunctions) {
+    if (_paymentForDistance == null) return const SizedBox.shrink();
+    return Positioned(
+      bottom: 120,
+      left: 0,
+      right: 0,
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(32),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.green.withOpacity(0.3),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.payments_outlined,
+                color: Color(0xFF00C853),
+                size: 18,
+              ),
+              const SizedBox(width: 8),
+              if (memberInfo != null &&
+                  memberInfo!.discountPercent > 0 &&
+                  !memberInfo!.isExpired) ...[
+                Text(
+                  '${myFunctions.convertToVND((_paymentForDistance! / (1 - disCount)).toStringAsFixed(0))} ₫',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Colors.red,
+                    fontWeight: FontWeight.w600,
+                    decoration: TextDecoration.lineThrough,
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ],
+              Text(
+                '${myFunctions.convertToVND(_paymentForDistance!.toStringAsFixed(0))} ₫',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF00C853),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomSheet(
+    MyFunctions myFunctions,
+    BookingManager bookingManager,
+    NotificationManager notisManager,
+  ) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(12, 0, 12, 100),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.18),
+            blurRadius: 24,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            margin: const EdgeInsets.only(top: 12),
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade300,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                selecting(),
+
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 14),
+                  child: Divider(height: 1),
+                ),
+
+                _infoRow(
+                  icon: 'assets/icons/location.svg',
+                  iconColor: 'red',
+                  title: 'Điểm bắt đầu',
+                  value: _placeNameSource ?? 'Không xác định',
+                  notChange: false,
+                ),
+                const SizedBox(height: 14),
+
+                _infoRow(
+                  icon: 'assets/icons/location.svg',
+                  iconColor: 'green',
+                  title: 'Điểm đến',
+                  value: _distanceKm == null
+                      ? _placeNameDest.toString()
+                      : '$_placeNameDest (${_distanceKm!.toStringAsFixed(2)} km)',
+                  notChange: false,
+                ),
+
+                if (memberInfo != null &&
+                    memberInfo!.discountPercent > 0 &&
+                    !memberInfo!.isExpired) ...[
+                  const SizedBox(height: 14),
+                  _infoRow(
+                    icon: 'assets/icons/level.svg',
+                    iconColor: 'green',
+                    title: 'Cấp độ thành viên',
+                    value: myFunctions.planRevert(memberInfo!.plan),
+                    notChange: true,
+                  ),
+                  const SizedBox(height: 14),
+                  _infoRow(
+                    icon: 'assets/icons/voucher.svg',
+                    iconColor: 'green',
+                    title: 'Mức ưu đãi',
+                    value: '${memberInfo!.discountPercent}%',
+                    notChange: false,
+                  ),
+                ],
+
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  child: Divider(height: 1),
+                ),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Tổng tiền',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black54,
+                      ),
+                    ),
+                    if (_paymentForDistance != null) ...[
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          if (memberInfo != null &&
+                              memberInfo!.discountPercent > 0 &&
+                              !memberInfo!.isExpired)
+                            Text(
+                              '${myFunctions.convertToVND((_paymentForDistance! / (1 - disCount)).toStringAsFixed(0))} ₫',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.red,
+                                fontWeight: FontWeight.w600,
+                                decoration: TextDecoration.lineThrough,
+                              ),
+                            ),
+                          Text(
+                            '${myFunctions.convertToVND(_paymentForDistance!.toStringAsFixed(0))} ₫',
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF00C853),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ] else
+                      const Text(
+                        '—',
+                        style: TextStyle(
+                          fontSize: 20,
+                          color: Colors.black38,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      if (_distanceKm == null ||
+                          amount == null ||
+                          pickupLocation == null ||
+                          dropoffLocation == null) {
+                        snackBarLogger(
+                          context,
+                          'Vui lòng chọn điểm đến',
+                          'warning',
+                        );
+                        return;
+                      }
+                      if (_distanceKm! < 0.5) {
+                        snackBarLogger(
+                          context,
+                          'Đoạn đường quá ngắn. Quý khách thông cảm giúp rùa nhỏ ạ!',
+                          'warning',
+                        );
+                        return;
+                      }
+                      final result = await bookingManager.addBooking(
+                        userId: user!.id,
+                        price: amount!,
+                        pickupLocation: pickupLocation!,
+                        dropoffLocation: dropoffLocation!,
+                        type: type!,
+                      );
+                      if (result) {
+                        snackBarLogger(
+                          context,
+                          'Đặt xe thành công! Chú ý điện thoại dùm rùa nhỏ ạ!',
+                          'success',
+                        );
+                        notisManager.addNotification(
+                          'Thông báo từ hệ thống',
+                          'success',
+                          'Đặt xe thành công',
+                          userId,
+                        );
+                        context.push('/');
+                      } else {
+                        snackBarLogger(
+                          context,
+                          'Đặt xe không thành công. Vui lòng chọn điểm đến!',
+                          'error',
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green.shade500,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      elevation: 0,
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.check_circle_outline_rounded, size: 18),
+                        SizedBox(width: 8),
+                        Text(
+                          'Xác nhận đặt xe',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final bookingManager = context.watch<BookingManager>();
     final notisManager = context.watch<NotificationManager>();
     final myFunctions = context.watch<MyFunctions>();
-    var isLandscape =
-        MediaQuery.of(context).orientation == Orientation.landscape;
 
     return Scaffold(
-      appBar: myAppBar(context, 'Booking'),
-      backgroundColor: Colors.green.shade50,
-      body: OrientationBuilder(
-        builder: (context, orientation) {
-          Widget mapWidget = BookingMap(
+      extendBodyBehindAppBar: true,
+      appBar: myAppBarPro(context, 'Booking'),
+      body: Stack(
+        children: [
+          BookingMap(
             onMapCreated: (controller) {
-              _mapController = controller;
+              mapController = controller;
             },
             onSelect: (latLng, place) {
               setState(() {
@@ -109,224 +485,45 @@ class _BookingPageState extends State<BookingPage> {
             },
             onDistanceChanged: (km) {
               if (_currentLocation == null || _destination == null) return;
-
               setState(() {
                 _distanceKm = km;
-
-                if (memberInfo != null &&
-                    memberInfo!.discountPercent > 0 &&
-                    !memberInfo!.isExpired) {
-                  _paymentForDistance = context
-                      .read<BookingManager>()
-                      .calculatePaymentWithDisCount(
-                        _distanceKm,
-                        type,
-                        disCount,
-                      );
-                } else {
-                  _paymentForDistance = context
-                      .read<BookingManager>()
-                      .calculatePayment(_distanceKm, type);
-                }
-
-                amount = _paymentForDistance;
-
-                pickupLocation = LocationModel(
-                  placeName: _placeNameSource!,
-                  latitude: _currentLocation!.latitude.toString(),
-                  longitude: _currentLocation!.longitude.toString(),
-                );
-
-                dropoffLocation = LocationModel(
-                  placeName: _placeNameDest!,
-                  latitude: _destination!.latitude.toString(),
-                  longitude: _destination!.longitude.toString(),
-                );
               });
+              _recalcPayment();
 
-              if (km < 1) {
-                snackBarLogger(
-                  context,
-                  'Đoạn đường quá ngắn. Khuyến nghị (> 1km)',
-                  'error',
-                );
-              }
+              pickupLocation = LocationModel(
+                placeName: _placeNameSource!,
+                latitude: _currentLocation!.latitude.toString(),
+                longitude: _currentLocation!.longitude.toString(),
+              );
+              dropoffLocation = LocationModel(
+                placeName: _placeNameDest!,
+                latitude: _destination!.latitude.toString(),
+                longitude: _destination!.longitude.toString(),
+              );
             },
-          );
+          ),
 
-          Widget infoWidget = SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 2),
-            child: Column(
-              children: [
-                const SizedBox(height: 5),
-                _selecting(),
-                const SizedBox(height: 5),
-                Card(
-                  elevation: 6,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 15,
-                    ),
-                    child: _bookingContent(),
-                  ),
-                ),
-                const SizedBox(height: 20),
-              ],
-            ),
-          );
+          _buildPriceBadge(myFunctions),
 
-          if (!isLandscape) {
-            return Column(
-              children: [
-                SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.6,
-                  child: mapWidget,
-                ),
-                Expanded(child: infoWidget),
-              ],
-            );
-          }
-
-          return Row(
-            children: [
-              Expanded(flex: 6, child: mapWidget),
-              Expanded(flex: 4, child: infoWidget),
-            ],
-          );
-        },
-      ),
-      bottomNavigationBar: BottomAppBar(
-        height: isLandscape ? 50 : 100,
-        color: Colors.white,
-        child: Row(
-          children: [
-            Text(
-              'Tổng số tiền:',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
-            ),
-            const SizedBox(width: 10),
-            if (isLandscape) ...[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  if (memberInfo != null &&
-                      memberInfo!.discountPercent > 0) ...[
-                    Text(
-                      _paymentForDistance == null
-                          ? '0 vnđ'
-                          : '${myFunctions.convertToVND((_paymentForDistance! / (1 - disCount)).toStringAsFixed(0))} vnđ',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                        color: Colors.red,
-                        decoration: TextDecoration.lineThrough,
-                      ),
-                    ),
-                  ],
-                  const SizedBox(width: 10),
-                  Text(
-                    _paymentForDistance == null
-                        ? '0 vnđ'
-                        : '${myFunctions.convertToVND(_paymentForDistance!.toStringAsFixed(0))} vnđ',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 20,
-                      color: Colors.green,
-                    ),
-                  ),
-                ],
+          SlideTransition(
+            position: _sheetSlide,
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: _buildBottomSheet(
+                myFunctions,
+                bookingManager,
+                notisManager,
               ),
-            ],
-            if (!isLandscape) ...[
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (memberInfo != null &&
-                      memberInfo!.discountPercent > 0) ...[
-                    Text(
-                      _paymentForDistance == null
-                          ? '0 vnđ'
-                          : '${myFunctions.convertToVND((_paymentForDistance! / (1 - disCount)).toStringAsFixed(0))} vnđ',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                        color: Colors.red,
-                        decoration: TextDecoration.lineThrough,
-                      ),
-                    ),
-                  ],
-                  Text(
-                    _paymentForDistance == null
-                        ? '0 vnđ'
-                        : '${myFunctions.convertToVND(_paymentForDistance!.toStringAsFixed(0))} vnđ',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 20,
-                      color: Colors.green,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+            ),
+          ),
 
-            const Spacer(),
-            button('Xác nhận', 'success', () async {
-              if (_distanceKm == null ||
-                  _distanceKm! < 1 ||
-                  amount == null ||
-                  pickupLocation == null ||
-                  dropoffLocation == null) {
-                snackBarLogger(context, 'Vui lòng chọn điểm đến', 'warning');
-                return;
-              }
-              if (_distanceKm == null || _distanceKm! < 1) {
-                snackBarLogger(
-                  context,
-                  'Đoạn đường quá ngắn. Quý khách thông cảm giúp rùa nhỏ ạ!',
-                  'warning',
-                );
-              } else {
-                final result = await bookingManager.addBooking(
-                  userId: user!.id,
-                  price: amount!,
-                  pickupLocation: pickupLocation!,
-                  dropoffLocation: dropoffLocation!,
-                  type: type!,
-                );
-                if (result) {
-                  snackBarLogger(
-                    context,
-                    'Đặt xe thành công! Chú ý điện thoại dùm rùa nhỏ ạ!',
-                    'success',
-                  );
-                  notisManager.addNotification(
-                    'Thông báo từ hệ thống',
-                    'success',
-                    'Đặt xe thành công',
-                    userId,
-                  );
-                  context.push('/');
-                } else {
-                  snackBarLogger(
-                    context,
-                    'Đặt xe không thành công. Vui lòng chọn điểm đến!',
-                    'error',
-                  );
-                }
-              }
-            }),
-          ],
-        ),
+          _buildToggleButton(),
+        ],
       ),
     );
   }
 
-  Widget _selecting() {
+  Widget selecting() {
     return StatefulBuilder(
       builder: (context, setLocal) {
         return Row(
@@ -338,28 +535,10 @@ class _BookingPageState extends State<BookingPage> {
               'Ô tô',
               'dart45',
               type == 'car',
-              type == 'car' ? 'large' : 'medium',
+              type == 'car' ? 'medium' : 'small',
               () {
-                setLocal(() {
-                  type = 'car';
-                });
-                setState(() {
-                  if (_distanceKm != null) {
-                    if (memberInfo != null && memberInfo!.discountPercent > 0) {
-                      _paymentForDistance = context
-                          .read<BookingManager>()
-                          .calculatePaymentWithDisCount(
-                            _distanceKm,
-                            type,
-                            disCount,
-                          );
-                    } else {
-                      _paymentForDistance = context
-                          .read<BookingManager>()
-                          .calculatePayment(_distanceKm, type);
-                    }
-                  }
-                });
+                setLocal(() => type = 'car');
+                _recalcPayment();
               },
             ),
             const SizedBox(width: 10),
@@ -368,28 +547,10 @@ class _BookingPageState extends State<BookingPage> {
               'Xe máy',
               'dart45',
               type == 'motobike',
-              type == 'motobike' ? 'large' : 'medium',
+              type == 'motobike' ? 'medium' : 'small',
               () {
-                setLocal(() {
-                  type = 'motobike';
-                });
-                setState(() {
-                  if (_distanceKm != null) {
-                    if (memberInfo != null && memberInfo!.discountPercent > 0) {
-                      _paymentForDistance = context
-                          .read<BookingManager>()
-                          .calculatePaymentWithDisCount(
-                            _distanceKm,
-                            type,
-                            disCount,
-                          );
-                    } else {
-                      _paymentForDistance = context
-                          .read<BookingManager>()
-                          .calculatePayment(_distanceKm, type);
-                    }
-                  }
-                });
+                setLocal(() => type = 'motobike');
+                _recalcPayment();
               },
             ),
             const SizedBox(width: 10),
@@ -398,33 +559,15 @@ class _BookingPageState extends State<BookingPage> {
               'Tài xế',
               'dart45',
               type == 'driver',
-              type == 'driver' ? 'large' : 'medium',
+              type == 'driver' ? 'medium' : 'small',
               () {
-                setLocal(() {
-                  type = 'driver';
-                });
+                setLocal(() => type = 'driver');
                 snackBarLogger(
                   context,
                   'Tài xế sẽ đến chậm đôi chút, quý khách thông cảm giúp rùa nhỏ ạ!',
                   'success',
                 );
-                setState(() {
-                  if (_distanceKm != null) {
-                    if (memberInfo != null && memberInfo!.discountPercent > 0) {
-                      _paymentForDistance = context
-                          .read<BookingManager>()
-                          .calculatePaymentWithDisCount(
-                            _distanceKm,
-                            type,
-                            disCount,
-                          );
-                    } else {
-                      _paymentForDistance = context
-                          .read<BookingManager>()
-                          .calculatePayment(_distanceKm, type);
-                    }
-                  }
-                });
+                _recalcPayment();
               },
             ),
           ],
@@ -452,81 +595,23 @@ class _BookingPageState extends State<BookingPage> {
               Text(
                 title,
                 style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black54,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black45,
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 3),
               Text(
                 value,
                 style: const TextStyle(
-                  fontSize: 16,
+                  fontSize: 15,
                   fontWeight: FontWeight.w700,
+                  color: Colors.black87,
                 ),
               ),
             ],
           ),
         ),
-      ],
-    );
-  }
-
-  Widget _bookingContent() {
-    final myFunctions = context.watch<MyFunctions>();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // const Center(
-        //   child: Text(
-        //     'Thông tin đặt xe',
-        //     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-        //   ),
-        // ),
-        // const SizedBox(height: 15),
-        _infoRow(
-          icon: 'assets/icons/location.svg',
-          iconColor: 'red',
-          title: 'Điểm bắt đầu',
-          value: _placeNameSource ?? 'Không xác định',
-          notChange: false,
-        ),
-
-        const SizedBox(height: 15),
-
-        _infoRow(
-          icon: 'assets/icons/location.svg',
-          iconColor: 'green',
-          title: 'Điểm đến',
-          value: _distanceKm == null
-              ? _placeNameDest.toString()
-              : '${_placeNameDest} (${_distanceKm!.toStringAsFixed(2)} Km)',
-          notChange: false,
-        ),
-
-        const SizedBox(height: 15),
-
-        /// Membership
-        if (memberInfo != null &&
-            memberInfo!.discountPercent > 0 &&
-            !memberInfo!.isExpired) ...[
-          _infoRow(
-            icon: 'assets/icons/level.svg',
-            iconColor: 'green',
-            title: 'Cấp độ thành viên',
-            value: myFunctions.planRevert(memberInfo!.plan),
-            notChange: true,
-          ),
-          const SizedBox(height: 10),
-          _infoRow(
-            icon: 'assets/icons/voucher.svg',
-            iconColor: 'green',
-            title: 'Mức ưu đãi',
-            value: '${memberInfo!.discountPercent}%',
-            notChange: false,
-          ),
-        ],
       ],
     );
   }
