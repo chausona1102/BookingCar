@@ -1,13 +1,16 @@
+import 'package:booking_app/models/booking.dart';
 import 'package:booking_app/models/driver.dart';
 import 'package:booking_app/ui/auth/auth_manager.dart';
 import 'package:booking_app/ui/layout/customer/booking_manager.dart';
 import 'package:booking_app/ui/layout/driver/driver_manager.dart';
+import 'package:booking_app/ui/shared/backPositioned.dart';
 import 'package:booking_app/ui/shared/iconSvg.dart';
 import 'package:booking_app/ui/shared/myAppBarPro.dart';
 import 'package:booking_app/ui/shared/showDialog.dart';
 import 'package:booking_app/ui/shared/snackBarLogger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -28,10 +31,15 @@ class _TripTracingState extends State<TripTracingPage>
   Set<Polyline> _polylines = {};
   bool _cameraMoved = false;
   final logger = Logger();
-
   late AnimationController _sheetAnimController;
   late Animation<Offset> _sheetSlide;
   bool _sheetVisible = false;
+
+  Future<Driver?>? _driverFuture;
+  Future<List<dynamic>>? _locationFuture;
+
+  String? _cachedDriverId;
+  String? _cachedBookingId;
 
   @override
   void initState() {
@@ -51,12 +59,40 @@ class _TripTracingState extends State<TripTracingPage>
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final auth = context.read<AuthManager>();
-      final bookingManager = context.read<BookingManager>();
       final userId = auth.currentUserId;
       if (userId != null) {
-        bookingManager.listenCurrentBooking(userId);
+        context.read<BookingManager>().listenCurrentBooking(userId);
       }
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final bookingManager = context.read<BookingManager>();
+    final driverManager = context.read<DriverManager>();
+    final booking = bookingManager.currentBooking;
+
+    if (booking == null) return;
+
+    if (_cachedBookingId != booking.id) {
+      _cachedBookingId = booking.id;
+      _locationFuture = Future.wait([
+        bookingManager.getLocationById(id: booking.pickupLocationId),
+        bookingManager.getLocationById(id: booking.dropoffLocationId),
+      ]);
+    }
+
+    final driverId = booking.driverId;
+    if (driverId != null &&
+        driverId.isNotEmpty &&
+        _cachedDriverId != driverId) {
+      _cachedDriverId = driverId;
+      _driverFuture = driverManager.fetchDriverById(id: driverId);
+    } else if (driverId == null || driverId.isEmpty) {
+      _driverFuture ??= Future.value(null);
+    }
   }
 
   @override
@@ -123,8 +159,8 @@ class _TripTracingState extends State<TripTracingPage>
   Widget _buildToggleButton(bool isLandscape) {
     return Positioned(
       bottom: isLandscape ? 10 : 40,
-      left: 0,
-      right: isLandscape ? MediaQuery.of(context).size.width * .6 : 0,
+      left: isLandscape ? MediaQuery.of(context).size.width * .6 : 0,
+      right: 0,
       child: Center(
         child: GestureDetector(
           onTap: _toggleSheet,
@@ -184,19 +220,19 @@ class _TripTracingState extends State<TripTracingPage>
   Widget build(BuildContext context) {
     final booking = context.watch<BookingManager>().currentBooking;
     final bookingManager = context.read<BookingManager>();
+    final myFunctions = context.watch<MyFunctions>();
     final isLandscape =
         MediaQuery.of(context).orientation == Orientation.landscape;
+
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: myAppBarPro(context, 'Theo dõi cuốc xe'),
+      appBar: isLandscape ? null : myAppBarPro(context, 'Theo dõi cuốc xe'),
       body: booking == null
           ? _buildEmptyState()
+          : _locationFuture == null
+          ? const Center(child: SpinKitCircle(color: Colors.green, size: 50))
           : FutureBuilder(
-              key: ValueKey('${booking.id}_${booking.status}'),
-              future: Future.wait([
-                bookingManager.getLocationById(id: booking.pickupLocationId),
-                bookingManager.getLocationById(id: booking.dropoffLocationId),
-              ]),
+              future: _locationFuture,
               builder: (context, snap) {
                 if (!snap.hasData) {
                   return const Center(child: CircularProgressIndicator());
@@ -246,9 +282,11 @@ class _TripTracingState extends State<TripTracingPage>
                     ),
 
                     Positioned(
-                      bottom: isLandscape ? 10 : 120,
+                      bottom: isLandscape ? 15 : 120,
                       left: 0,
-                      right: 0,
+                      right: isLandscape
+                          ? MediaQuery.of(context).size.width * 0.5
+                          : 0,
                       child: Center(
                         child: _statusBadge(_mapStatus(booking.status)),
                       ),
@@ -257,18 +295,25 @@ class _TripTracingState extends State<TripTracingPage>
                     SlideTransition(
                       position: _sheetSlide,
                       child: Align(
-                        alignment: Alignment.bottomCenter,
+                        alignment: isLandscape
+                            ? Alignment.topCenter
+                            : Alignment.bottomCenter,
                         child: _buildBottomSheet(
                           context,
                           pickup,
                           dropoff,
                           booking,
                           bookingManager,
+                          isLandscape,
+                          _driverFuture ?? Future.value(null),
+                          myFunctions,
                         ),
                       ),
                     ),
 
                     _buildToggleButton(isLandscape),
+
+                    if (isLandscape) ...[backPositioned(context)],
                   ],
                 );
               },
@@ -300,14 +345,21 @@ class _TripTracingState extends State<TripTracingPage>
     BuildContext context,
     dynamic pickup,
     dynamic dropoff,
-    dynamic booking,
+    BookingModel booking,
     BookingManager bookingManager,
+    bool isLandscape,
+    Future<Driver?> driverFuture,
+    MyFunctions myFunctions,
   ) {
-    final driverManager = context.read<DriverManager>();
-    final myFunctions = context.watch<MyFunctions>();
-
     return Container(
-      margin: const EdgeInsets.fromLTRB(12, 0, 12, 60),
+      margin: isLandscape
+          ? EdgeInsets.fromLTRB(
+              MediaQuery.of(context).size.width * .5,
+              20,
+              12,
+              20,
+            )
+          : const EdgeInsets.fromLTRB(12, 0, 12, 100),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
@@ -318,9 +370,6 @@ class _TripTracingState extends State<TripTracingPage>
             offset: const Offset(0, -4),
           ),
         ],
-      ),
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.7,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -355,7 +404,7 @@ class _TripTracingState extends State<TripTracingPage>
                   ),
                   const SizedBox(height: 14),
                   FutureBuilder<Driver?>(
-                    future: driverManager.fetchDriverById(id: booking.driverId),
+                    future: driverFuture,
                     builder: (context, snap) {
                       if (snap.connectionState == ConnectionState.waiting) {
                         return _infoRow(

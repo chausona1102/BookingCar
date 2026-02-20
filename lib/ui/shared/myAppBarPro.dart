@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 PreferredSizeWidget myAppBarPro(BuildContext context, String title) {
+  final isLandscape =
+      MediaQuery.of(context).orientation == Orientation.landscape;
   return AppBar(
     backgroundColor: Colors.transparent,
     elevation: 0,
@@ -22,28 +24,30 @@ PreferredSizeWidget myAppBarPro(BuildContext context, String title) {
         child: const Icon(Icons.arrow_back, color: Colors.black87),
       ),
     ),
-    title: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.12),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+    title: isLandscape
+        ? const SizedBox(height: 0, width: 0)
+        : Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.12),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Text(
+              title,
+              style: TextStyle(
+                color: Colors.black87,
+                fontWeight: FontWeight.w700,
+                fontSize: 16,
+              ),
+            ),
           ),
-        ],
-      ),
-      child: Text(
-        title,
-        style: TextStyle(
-          color: Colors.black87,
-          fontWeight: FontWeight.w700,
-          fontSize: 16,
-        ),
-      ),
-    ),
     centerTitle: true,
   );
 }

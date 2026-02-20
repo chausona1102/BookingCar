@@ -1,3 +1,5 @@
+import 'package:booking_app/ui/shared/snackBarLogger.dart';
+
 import 'auth_manager.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
@@ -63,14 +65,10 @@ class _RegisterState extends State<Register> {
       if (!mounted) return;
 
       if (success) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text("Đăng ký thành công!")));
+        snackBarLogger(context, 'Đăng ký thành công', 'success');
         context.go('/login');
       } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text("Đăng ký thất bại!")));
+        snackBarLogger(context, 'Đăng ký thất bại', 'warning');
       }
     } catch (e) {
       if (!mounted) return;
@@ -191,7 +189,7 @@ class _RegisterState extends State<Register> {
                 ),
                 const SizedBox(height: 10),
                 GestureDetector(
-                  onTap: _pickAvatar, 
+                  onTap: _pickAvatar,
                   child: CircleAvatar(
                     radius: 45,
                     backgroundColor: Colors.green.shade200,

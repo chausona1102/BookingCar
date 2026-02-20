@@ -1,3 +1,4 @@
+import 'package:booking_app/models/user.dart';
 import 'package:booking_app/ui/auth/auth_manager.dart';
 import 'package:booking_app/ui/shared/navigation_bar.dart';
 import 'package:booking_app/ui/shared/navigation_bar_driver.dart';
@@ -32,9 +33,35 @@ class Profile extends StatelessWidget {
                     flex: 3,
                     child: Center(
                       child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          _avatar(user),
+                          Stack(
+                            children: [
+                              _avatar(user),
+                              Positioned(
+                                left: 0,
+                                bottom: 0,
+                                top: 0,
+                                right: 0,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.black38,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: IconButton(
+                                    onPressed: () {
+                                      context.push('/edit-info');
+                                    },
+                                    icon: Icon(
+                                      Icons.edit_square,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                           const SizedBox(height: 20),
                           _name(user),
                         ],
@@ -61,7 +88,29 @@ class Profile extends StatelessWidget {
             : Column(
                 children: [
                   const SizedBox(height: 40),
-                  _avatar(user),
+                  Stack(
+                    children: [
+                      _avatar(user),
+                      Positioned(
+                        left: 0,
+                        bottom: 0,
+                        top: 0,
+                        right: 0,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.black38,
+                            shape: BoxShape.circle,
+                          ),
+                          child: IconButton(
+                            onPressed: () {
+                              context.push('/edit-info');
+                            },
+                            icon: Icon(Icons.edit_square, color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 20),
                   _name(user),
                   const SizedBox(height: 30),
@@ -75,29 +124,29 @@ class Profile extends StatelessWidget {
     );
   }
 
-  Widget _avatar(user) {
+  Widget _avatar(User user) {
     return CircleAvatar(
       radius: 70,
       backgroundColor: Colors.white,
-      backgroundImage: user?.avatarUrl != null
-          ? NetworkImage(user!.avatarUrl!)
+      backgroundImage: user.avatarUrl != null
+          ? NetworkImage(user.avatarUrl!)
           : const AssetImage('assets/default_avatar.png') as ImageProvider,
     );
   }
 
-  Widget _name(user) {
+  Widget _name(User user) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          user?.fullName ?? 'Chưa có tên',
+          user.fullName,
           style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
         ),
       ],
     );
   }
 
-  Widget _cardInfo(BuildContext context, user) {
+  Widget _cardInfo(BuildContext context, User user) {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       elevation: 3,
@@ -107,17 +156,17 @@ class Profile extends StatelessWidget {
           children: [
             _infoRow(
               icon: Icons.person,
-              text: user?.userName ?? 'Chưa có tài khoản',
+              text: user.userName,
             ),
             const Divider(),
             _infoRow(
               icon: Icons.email,
-              text: user?.emailText ?? 'Chưa có email',
+              text: user.emailText,
             ),
             const Divider(),
             _infoRow(
               icon: Icons.phone,
-              text: user?.phoneNumber ?? 'Chưa có số điện thoại',
+              text: user.phoneNumber,
             ),
             if (user.role != 'driver') ...[
               const Divider(),
@@ -130,7 +179,6 @@ class Profile extends StatelessWidget {
                 child: Text('Đăng ký làm tài xế'),
               ),
             ],
-            // if(user.role == 'driver') ...[]
           ],
         ),
       ),

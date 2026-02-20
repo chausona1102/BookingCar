@@ -138,10 +138,11 @@ class _CustomerState extends State<Customer> {
               ),
             ),
             const SizedBox(height: 10),
-            if (!isLandscape) ...[
-              _action(user!, 'medium'),
-            ] else ...[
-              _action(user!, 'large'),
+            if (user != null) ...[
+              if (!isLandscape)
+                _action(user, 'medium')
+              else
+                _action(user, 'large'),
             ],
             const Divider(color: Colors.green),
             if (isLandscape) ...[

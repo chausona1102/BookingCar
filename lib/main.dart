@@ -16,6 +16,7 @@ import 'package:booking_app/ui/auth/customer_manager.dart';
 import 'package:booking_app/ui/layout/driver/driver_trip_tracking_page.dart';
 import 'package:booking_app/ui/layout/driver/payment_trip_page.dart';
 import 'package:booking_app/ui/layout/driver/setting_page.dart';
+import 'package:booking_app/ui/layout/edit_info_page.dart';
 import 'package:booking_app/ui/layout/profile.dart';
 import 'package:booking_app/utils/myFunction.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -179,6 +180,12 @@ class _AppRootState extends State<AppRoot> {
           builder: (context, state) {
             final data = state.extra as BookingModel;
             return PaymentTripPage(data: data);
+          },
+        ),
+        GoRoute(
+          path: '/edit-info',
+          builder: (_, __) {
+            return EditInfoPage();
           },
         ),
       ],

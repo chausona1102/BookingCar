@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:pocketbase/pocketbase.dart';
 import '../models/user.dart';
 import 'dart:io';
+import 'package:logger/logger.dart';
 import 'package:http/http.dart' as http;
 import 'pb_client.dart';
 
 class AuthService extends ChangeNotifier {
   PocketBase get pb => pocketBase;
-
+  final logger = Logger();
   // static final AuthService _instance = AuthService._internal();
   // late final PocketBase pb;
   // factory AuthService() => _instance;
@@ -58,6 +59,47 @@ class AuthService extends ChangeNotifier {
     } catch (e) {
       print('Lỗi đăng ký: $e');
       return false;
+    }
+  }
+
+  Future<User?> update({
+    required String id,
+    required String username,
+    required String firstname,
+    required String lastname,
+    required String phone,
+    File? avatar,
+  }) async {
+    try {
+      final body = {
+        'username': username,
+        'firstname': firstname,
+        'lastname': lastname,
+        'phone': phone,
+        'role': 'customer',
+        'isactive': true,
+      };
+
+      RecordModel record;
+
+      if (avatar != null) {
+        record = await pb
+            .collection('users')
+            .update(
+              id,
+              body: body,
+              files: [await http.MultipartFile.fromPath('avatar', avatar.path)],
+            );
+      } else {
+        record = await pb.collection('users').update(id, body: body);
+      }
+
+      pb.authStore.save(pb.authStore.token, record);
+
+      return User.fromJson(record.toJson());
+    } catch (e) {
+      logger.i('Lỗi update: $e');
+      return null;
     }
   }
 
