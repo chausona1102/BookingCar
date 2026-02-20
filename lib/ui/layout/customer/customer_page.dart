@@ -306,6 +306,14 @@ class _CustomerState extends State<Customer> {
             size: size,
           ),
         ),
+        IconButton(
+          onPressed: () => context.push('/setting', extra: user.id),
+          icon: iconButton(
+            imagePath: 'assets/images/setting.png',
+            text: 'Cài đặt',
+            size: size,
+          ),
+        ),
       ],
     );
   }

@@ -19,6 +19,7 @@ import 'package:booking_app/ui/layout/driver/setting_page.dart';
 import 'package:booking_app/ui/layout/edit_info_page.dart';
 import 'package:booking_app/ui/layout/profile.dart';
 import 'package:booking_app/utils/myFunction.dart';
+import 'package:booking_app/validator/validator.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:booking_app/models/vipdata.dart';
 import 'package:go_router/go_router.dart';
@@ -50,6 +51,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => BookingManager()),
         ChangeNotifierProvider(create: (_) => MyFunctions()),
         ChangeNotifierProvider(create: (_) => NotificationManager()),
+        ChangeNotifierProvider(create: (_) => Validator())
       ],
       child: const AppRoot(),
     );
@@ -198,7 +200,7 @@ class _AppRootState extends State<AppRoot> {
       debugShowCheckedModeBanner: false,
       title: 'Booking Car',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.brown),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
         useMaterial3: true,
       ),
       routerConfig: _router,

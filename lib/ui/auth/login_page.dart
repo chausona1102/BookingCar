@@ -1,4 +1,5 @@
 import 'package:booking_app/ui/shared/snackBarLogger.dart';
+import 'package:booking_app/ui/shared/textFieldForm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
@@ -15,7 +16,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
-
+  bool obscureText = true;
   bool _isLoading = false;
 
   Future<void> _login() async {
@@ -50,6 +51,10 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  void toggleShowPass() {
+    obscureText = !obscureText;
+  }
+
   @override
   Widget build(BuildContext context) {
     final isLandscape =
@@ -79,26 +84,59 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                         const SizedBox(height: 32),
-
-                        TextField(
-                          controller: _usernameController,
-                          decoration: const InputDecoration(
-                            labelText: 'Tài khoản',
-                            border: OutlineInputBorder(),
-                            prefixIcon: Icon(Icons.person, color: Colors.green),
-                          ),
+                        textFieldForm(
+                          _usernameController,
+                          'Tài khoản',
+                          Icons.person,
+                          false,
                         ),
                         const SizedBox(height: 16),
-
-                        TextField(
-                          controller: _passwordController,
-                          obscureText: true,
-                          decoration: const InputDecoration(
-                            labelText: 'Mật khẩu',
-                            border: OutlineInputBorder(),
-                            prefixIcon: Icon(Icons.lock, color: Colors.green),
-                          ),
+                        Stack(
+                          children: [
+                            TextField(
+                              controller: _passwordController,
+                              obscureText: obscureText,
+                              cursorColor: Colors.green,
+                              decoration: const InputDecoration(
+                                labelText: 'Mật khẩu',
+                                labelStyle: TextStyle(color: Colors.black38),
+                                border: OutlineInputBorder(),
+                                prefixIcon: Icon(
+                                  Icons.lock,
+                                  color: Colors.green,
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: Colors.green,
+                                    width: 1,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              top: 0,
+                              bottom: 0,
+                              right: 10,
+                              child: IconButton(
+                                onPressed: () {
+                                  setState(() {
+                                    toggleShowPass();
+                                  });
+                                },
+                                icon: obscureText
+                                    ? Icon(
+                                        Icons.visibility_off,
+                                        color: Colors.black26,
+                                      )
+                                    : Icon(
+                                        Icons.remove_red_eye,
+                                        color: Colors.black26,
+                                      ),
+                              ),
+                            ),
+                          ],
                         ),
+
                         const SizedBox(height: 24),
 
                         SizedBox(
@@ -112,7 +150,7 @@ class _LoginPageState extends State<LoginPage> {
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.green.shade300,
                                     foregroundColor: Colors.white,
-                                    elevation: 4,
+                                    elevation: 6,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
@@ -134,6 +172,7 @@ class _LoginPageState extends State<LoginPage> {
                             onPressed: () {
                               context.go('/register');
                             },
+                            style: ElevatedButton.styleFrom(elevation: 6),
                             child: const Text(
                               'Chưa có tài khoản? Đăng ký ngay!',
                             ),

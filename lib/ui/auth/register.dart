@@ -1,4 +1,6 @@
 import 'package:booking_app/ui/shared/snackBarLogger.dart';
+import 'package:booking_app/ui/shared/textFieldForm.dart';
+import 'package:booking_app/validator/validator.dart';
 
 import 'auth_manager.dart';
 import 'package:go_router/go_router.dart';
@@ -16,7 +18,6 @@ class Register extends StatefulWidget {
 }
 
 class _RegisterState extends State<Register> {
-  // final AuthService _authService = AuthService();
   final _emailController = TextEditingController();
   final _usernameController = TextEditingController();
   final _phoneController = TextEditingController();
@@ -27,6 +28,8 @@ class _RegisterState extends State<Register> {
   final ImagePicker _picker = ImagePicker();
   File? _avatar;
   bool _isLoading = false;
+  bool obscureTextPass = true;
+  bool obscureTextConfirmPass = true;
 
   Future<void> _pickAvatar() async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
@@ -52,6 +55,7 @@ class _RegisterState extends State<Register> {
       final authManager = context.read<AuthManager>();
 
       final success = await authManager.register(
+        context: context,
         email: email,
         username: username,
         firstname: firstname,
@@ -80,6 +84,32 @@ class _RegisterState extends State<Register> {
     }
   }
 
+  void showPass(String field) {
+    switch (field) {
+      case 'pass':
+        obscureTextPass = !obscureTextPass;
+        break;
+      case 'confirmpass':
+        obscureTextConfirmPass = !obscureTextConfirmPass;
+        break;
+      default:
+        obscureTextPass = !obscureTextPass;
+    }
+  }
+
+  bool validator() {
+    return context.read<Validator>().validator(
+      context,
+      _emailController,
+      _usernameController,
+      _phoneController,
+      _firstnameController,
+      _lastnameController,
+      _passwordController,
+      _avatar,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -101,81 +131,115 @@ class _RegisterState extends State<Register> {
                   ),
                 ),
                 const SizedBox(height: 32),
-                TextField(
-                  controller: _emailController,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.email, color: Colors.green),
-                  ),
+                textFieldForm(_emailController, 'Email', Icons.email, false),
+                const SizedBox(height: 16),
+                textFieldForm(
+                  _usernameController,
+                  'Tài khoản',
+                  Icons.person,
+                  false,
                 ),
                 const SizedBox(height: 16),
-                // tài khoản
-                TextField(
-                  controller: _usernameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Tài khoản',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.person, color: Colors.green),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _phoneController,
-                  decoration: const InputDecoration(
-                    labelText: 'Số điện thoại',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.phone, color: Colors.green),
-                  ),
+                textFieldForm(
+                  _phoneController,
+                  'Số điện thoại',
+                  Icons.phone,
+                  false,
                 ),
                 const SizedBox(height: 16),
                 Row(
                   children: [
                     Expanded(
                       flex: 2,
-                      child: TextField(
-                        controller: _firstnameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Họ và tên đệm',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.person, color: Colors.green),
-                        ),
+                      child: textFieldForm(
+                        _firstnameController,
+                        'Họ và tên đệm',
+                        Icons.person,
+                        false,
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 5),
                     Expanded(
                       flex: 1,
-                      child: TextField(
-                        controller: _lastnameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Tên',
-                          border: OutlineInputBorder(),
-                        ),
+                      child: textFieldForm(
+                        _lastnameController,
+                        'Tên',
+                        Icons.person,
+                        false,
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 16),
-                // mật khẩu
-                TextField(
-                  controller: _passwordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Mật khẩu',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.lock, color: Colors.green),
-                  ),
+                Stack(
+                  children: [
+                    TextField(
+                      controller: _passwordController,
+                      obscureText: obscureTextPass,
+                      cursorColor: Colors.green,
+                      decoration: const InputDecoration(
+                        labelText: 'Mật khẩu',
+                        labelStyle: TextStyle(color: Colors.black38),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.green, width: 1),
+                        ),
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.lock, color: Colors.green),
+                      ),
+                    ),
+                    Positioned(
+                      top: 0,
+                      bottom: 0,
+                      right: 10,
+                      child: IconButton(
+                        onPressed: () {
+                          setState(() {
+                            showPass('pass');
+                          });
+                        },
+                        icon: obscureTextPass
+                            ? Icon(Icons.visibility_off, color: Colors.black26)
+                            : Icon(Icons.remove_red_eye, color: Colors.black26),
+                      ),
+                    ),
+                  ],
                 ),
+
                 const SizedBox(height: 16),
-                TextField(
-                  controller: _passwordConfirmController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Nhập lại mật khẩu',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.lock, color: Colors.green),
-                  ),
+                Stack(
+                  children: [
+                    TextField(
+                      controller: _passwordConfirmController,
+                      obscureText: obscureTextConfirmPass,
+                      cursorColor: Colors.green,
+                      decoration: const InputDecoration(
+                        labelText: 'Nhập lại mật khẩu',
+                        labelStyle: TextStyle(color: Colors.black38),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.green, width: 1),
+                        ),
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.lock, color: Colors.green),
+                      ),
+                    ),
+                    Positioned(
+                      top: 0,
+                      bottom: 0,
+                      right: 10,
+                      child: IconButton(
+                        onPressed: () {
+                          setState(() {
+                            showPass('confirmpass');
+                          });
+                        },
+                        icon: obscureTextConfirmPass
+                            ? Icon(Icons.visibility_off, color: Colors.black26)
+                            : Icon(Icons.remove_red_eye, color: Colors.black26),
+                      ),
+                    ),
+                  ],
                 ),
+
                 const SizedBox(height: 24),
                 Center(
                   child: const Text(
@@ -206,7 +270,6 @@ class _RegisterState extends State<Register> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                // nút đăng nhập
                 SizedBox(
                   width: double.infinity,
                   child: _isLoading
@@ -215,7 +278,7 @@ class _RegisterState extends State<Register> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.green.shade300,
                             foregroundColor: Colors.white,
-                            elevation: 4,
+                            elevation: 6,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -224,7 +287,13 @@ class _RegisterState extends State<Register> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          onPressed: _register,
+                          onPressed: () {
+                            if (validator()) {
+                              _register();
+                            } else {
+                              return;
+                            }
+                          },
                           child: const Text('Đăng ký'),
                         ),
                 ),
@@ -235,6 +304,7 @@ class _RegisterState extends State<Register> {
                     onPressed: () {
                       context.go('/login');
                     },
+                    style: ElevatedButton.styleFrom(elevation: 6),
                     child: const Text('Quay lại đăng nhập'),
                   ),
                 ),

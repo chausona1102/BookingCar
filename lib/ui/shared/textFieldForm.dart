@@ -13,6 +13,7 @@ Widget textFieldForm(
     controller: controler,
     decoration: InputDecoration(
       labelText: title,
+      labelStyle: TextStyle(color: Colors.black38),
       enabledBorder: OutlineInputBorder(
         borderSide: BorderSide(color: Colors.black38),
       ),

@@ -9,21 +9,14 @@ import 'pb_client.dart';
 class AuthService extends ChangeNotifier {
   PocketBase get pb => pocketBase;
   final logger = Logger();
-  // static final AuthService _instance = AuthService._internal();
-  // late final PocketBase pb;
-  // factory AuthService() => _instance;
-
-  // AuthService._internal() {
-  //   final url = dotenv.env['POCKETBASE_URL'] ?? 'http://10.0.2.2:8090';
-  //   pb = PocketBase(url);
-  // }
   Future<bool> login(String username, String password) async {
     try {
       await pb.collection('users').authWithPassword(username, password);
       notifyListeners();
       return pb.authStore.isValid;
-    } catch (e) {
-      print('Lỗi đăng nhập: $e');
+    } on ClientException catch (e) {
+      final data = e.response;
+      logger.i(data);
       return false;
     }
   }
@@ -56,9 +49,24 @@ class AuthService extends ChangeNotifier {
 
       await pb.collection('users').create(body: body, files: files);
       return true;
-    } catch (e) {
-      print('Lỗi đăng ký: $e');
-      return false;
+    } on ClientException catch (e) {
+      final data = e.response['data'];
+      logger.i(data);
+      if (data != null && data['email'] != null) {
+        final fieldName = data.keys.first;
+        final error = data[fieldName]['message'];
+        if (error == 'Value must be unique.') {
+          throw ('Email đã tồn tại');
+        }
+      } else if (data != null && data['username'] != null) {
+        final fieldName = data.keys.first;
+        final error = data[fieldName]['message'];
+        if (error == 'Value must be unique.') {
+          throw ('Tài khoản đã tồn tại');
+        }
+      }
+
+      throw e.response['message'] ?? 'Đăng ký thất bại';
     }
   }
 

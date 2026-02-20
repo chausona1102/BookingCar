@@ -1,6 +1,5 @@
 import 'package:booking_app/models/driver.dart';
 import 'package:booking_app/ui/layout/driver/driver_manager.dart';
-import 'package:booking_app/ui/shared/driverAppBar.dart';
 import 'package:booking_app/ui/shared/headerAppbar.dart';
 import 'package:booking_app/ui/shared/snackBarLogger.dart';
 import 'package:flutter/material.dart';
@@ -16,10 +15,12 @@ class SettingPage extends StatefulWidget {
 class _SettingPageState extends State<SettingPage> {
   Driver? driver;
   bool isLoading = true;
+  String userId = '';
 
   @override
   void initState() {
     super.initState();
+    userId = widget.userId ?? '';
     _loadDriver();
   }
 
@@ -51,12 +52,25 @@ class _SettingPageState extends State<SettingPage> {
     if (driver == null) {
       return Scaffold(
         backgroundColor: const Color(0xFFF4F7F5),
-        appBar: driverAppBar('Cài đặt'),
-        body: const Center(
-          child: Text(
-            'Không tìm thấy tài xế',
-            style: TextStyle(color: Colors.black54, fontSize: 16),
-          ),
+        body: Column(
+          children: [
+            buildHeader(context, 'Cài đặt'),
+            Expanded(
+              flex: 9,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 4),
+                    _sectionLabel('bảo mật & thông tin'),
+                    const SizedBox(height: 10),
+                    _buildViewInfo(userId),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       );
     }
@@ -181,6 +195,72 @@ class _SettingPageState extends State<SettingPage> {
             },
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildViewInfo(String userId) {
+    return GestureDetector(
+      onTap: () {
+        // context.push('/setting', extra: userId);
+        print('tab');
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF00C853).withOpacity(0.12),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+        child: Row(
+          children: [
+            Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                color: const Color(0xFF00C853).withOpacity(0.12),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(
+                Icons.info,
+                color: const Color.fromARGB(255, 161, 161, 161),
+                size: 26,
+              ),
+            ),
+            const SizedBox(width: 16),
+
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Thông tin cá nhân',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF0F1923),
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    'Chỉnh sửa thông tin cá nhân',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: const Color(0xFF00C853),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

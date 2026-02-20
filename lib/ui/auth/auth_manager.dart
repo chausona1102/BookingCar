@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:booking_app/services/auth_service.dart';
+import 'package:booking_app/ui/shared/snackBarLogger.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/web.dart';
 import '../../models/user.dart';
@@ -18,7 +19,7 @@ class AuthManager extends ChangeNotifier {
   User? get user => _user;
   Future<bool> login(String username, String password) async {
     final success = await _authService.login(username, password);
-    logger.i("Login is $success");
+    // logger.i("Login is $success");
     if (success) {
       _user = _authService.currentUser;
       notifyListeners();
@@ -43,6 +44,7 @@ class AuthManager extends ChangeNotifier {
   }
 
   Future<bool> register({
+    required BuildContext context,
     required String email,
     required String username,
     required String firstname,
@@ -53,7 +55,7 @@ class AuthManager extends ChangeNotifier {
     File? avatar,
   }) async {
     if (password != passwordConfirm) {
-      throw Exception("Mật khẩu không khớp");
+      snackBarLogger(context, "Mật khẩu không khớp", 'warning');
     }
     return await _authService.register(
       email: email,

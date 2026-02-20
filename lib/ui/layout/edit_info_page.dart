@@ -275,25 +275,18 @@ class _EditInfoState extends State<EditInfoPage> {
                       child: ElevatedButton.icon(
                         icon: const Icon(
                           Icons.cancel,
-                          color: Colors.white,
+                          color: Colors.black,
                           size: 16,
                         ),
                         label: const Text(
                           'Hủy',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: Colors.black,
                             fontWeight: FontWeight.w600,
                             fontSize: 16,
                           ),
                         ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color.fromARGB(
-                            255,
-                            172,
-                            172,
-                            172,
-                          ),
-                        ),
+                        style: ElevatedButton.styleFrom(elevation: 6),
                         onPressed: () {
                           Navigator.of(context).pop();
                         },
