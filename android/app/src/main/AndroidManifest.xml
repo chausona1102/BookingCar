@@ -5,10 +5,11 @@
     <application
         android:label="B-Car"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:allowBackup="false">
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyCfLXH9WriKc8oJoEoFSU2U1E6XjS43U5o"/>
+            android:value="AIzaSyC6fjNNLRYGuUOcj6-o3q8i5SO0p4GzbGM"/>
         <activity
             android:name=".MainActivity"
             android:exported="true"

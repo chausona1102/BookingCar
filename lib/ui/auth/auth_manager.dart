@@ -19,12 +19,31 @@ class AuthManager extends ChangeNotifier {
   User? get user => _user;
   Future<bool> login(String username, String password) async {
     final success = await _authService.login(username, password);
-    // logger.i("Login is $success");
     if (success) {
       _user = _authService.currentUser;
       notifyListeners();
     }
     return success;
+  }
+
+  Future<bool> verify(String username, String password) async {
+    final success = await _authService.login(username, password);
+    if (success) {
+      notifyListeners();
+    }
+    return success;
+  }
+
+  Future<bool> updatePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    if (_user == null) return false;
+    return await _authService.updatePassword(
+      id: _user!.id,
+      oldPassword: oldPassword,
+      newPassword: newPassword,
+    );
   }
 
   Future<void> restoreLogin() async {
@@ -70,7 +89,6 @@ class AuthManager extends ChangeNotifier {
 
   Future<bool> update({
     required String id,
-    required String username,
     required String firstname,
     required String lastname,
     required String phone,
@@ -83,7 +101,6 @@ class AuthManager extends ChangeNotifier {
     ;
     final updatedUser = await _authService.update(
       id: id,
-      username: username,
       firstname: firstname,
       lastname: lastname,
       phone: phone,

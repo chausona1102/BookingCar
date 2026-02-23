@@ -2,6 +2,7 @@ import 'package:booking_app/ui/shared/snackBarLogger.dart';
 import 'package:booking_app/ui/shared/textFieldForm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'auth_manager.dart';
@@ -18,6 +19,8 @@ class _LoginPageState extends State<LoginPage> {
   final _passwordController = TextEditingController();
   bool obscureText = true;
   bool _isLoading = false;
+
+  final logger = Logger();
 
   Future<void> _login() async {
     setState(() => _isLoading = true);
@@ -53,6 +56,13 @@ class _LoginPageState extends State<LoginPage> {
 
   void toggleShowPass() {
     obscureText = !obscureText;
+  }
+
+  @override
+  void dispose() {
+    _passwordController.dispose();
+    _usernameController.dispose();
+    super.dispose();
   }
 
   @override

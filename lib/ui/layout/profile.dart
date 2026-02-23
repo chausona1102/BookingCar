@@ -1,5 +1,6 @@
 import 'package:booking_app/models/user.dart';
 import 'package:booking_app/ui/auth/auth_manager.dart';
+import 'package:booking_app/ui/shared/avatarCircle.dart';
 import 'package:booking_app/ui/shared/navigation_bar.dart';
 import 'package:booking_app/ui/shared/navigation_bar_driver.dart';
 import 'package:flutter/material.dart';
@@ -38,7 +39,7 @@ class Profile extends StatelessWidget {
                         children: [
                           Stack(
                             children: [
-                              _avatar(user),
+                              avatarCircle(user, 70),
                               Positioned(
                                 left: 0,
                                 bottom: 0,
@@ -90,7 +91,7 @@ class Profile extends StatelessWidget {
                   const SizedBox(height: 40),
                   Stack(
                     children: [
-                      _avatar(user),
+                      avatarCircle(user, 70),
                       Positioned(
                         left: 0,
                         bottom: 0,
@@ -124,16 +125,6 @@ class Profile extends StatelessWidget {
     );
   }
 
-  Widget _avatar(User user) {
-    return CircleAvatar(
-      radius: 70,
-      backgroundColor: Colors.white,
-      backgroundImage: user.avatarUrl != null
-          ? NetworkImage(user.avatarUrl!)
-          : const AssetImage('assets/default_avatar.png') as ImageProvider,
-    );
-  }
-
   Widget _name(User user) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -154,20 +145,11 @@ class Profile extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            _infoRow(
-              icon: Icons.person,
-              text: user.userName,
-            ),
+            _infoRow(icon: Icons.person, text: user.userName),
             const Divider(),
-            _infoRow(
-              icon: Icons.email,
-              text: user.emailText,
-            ),
+            _infoRow(icon: Icons.email, text: user.emailText),
             const Divider(),
-            _infoRow(
-              icon: Icons.phone,
-              text: user.phoneNumber,
-            ),
+            _infoRow(icon: Icons.phone, text: user.phoneNumber),
             if (user.role != 'driver') ...[
               const Divider(),
               TextButton(

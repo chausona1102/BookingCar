@@ -58,7 +58,6 @@ class _EditInfoState extends State<EditInfoPage> {
 
   Future<bool> _editedRequest(String id) async {
     setState(() => _isLoading = true);
-    final username = _usernameController.text.trim();
     final phone = _phoneController.text.trim();
     final firstname = _firstnameController.text.trim();
     final lastname = _lastnameController.text.trim();
@@ -66,7 +65,6 @@ class _EditInfoState extends State<EditInfoPage> {
     try {
       final success = await authManager.update(
         id: id,
-        username: username,
         firstname: firstname,
         lastname: lastname,
         phone: phone,
@@ -88,6 +86,15 @@ class _EditInfoState extends State<EditInfoPage> {
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+    @override
+  void dispose() {
+    _emailController.dispose();
+    _firstnameController.dispose();
+    _lastnameController.dispose();
+    _usernameController.dispose();
+    _phoneController.dispose();
+    super.dispose();
   }
 
   @override
@@ -200,7 +207,7 @@ class _EditInfoState extends State<EditInfoPage> {
                       _usernameController,
                       user!.userName,
                       Icons.person,
-                      false,
+                      true,
                     ),
                     const SizedBox(height: 10),
                     Row(

@@ -125,6 +125,9 @@ class _DriverTripTrackingPageState extends State<DriverTripTrackingPage>
         mode: TravelMode.driving,
       ),
     );
+    print('DEBUG loc: $_currentLocation');
+    print('DEBUG pickup: $_pickupLatLng');
+    print('DEBUG dropoff: $_dropoffLatLng');
     if (result.points.isEmpty) return;
     setState(() {
       _polylines.add(

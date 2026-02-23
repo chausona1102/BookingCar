@@ -15,8 +15,9 @@ import 'package:booking_app/ui/layout/driver/driver_page.dart';
 import 'package:booking_app/ui/auth/customer_manager.dart';
 import 'package:booking_app/ui/layout/driver/driver_trip_tracking_page.dart';
 import 'package:booking_app/ui/layout/driver/payment_trip_page.dart';
-import 'package:booking_app/ui/layout/driver/setting_page.dart';
+import 'package:booking_app/ui/layout/setting_page.dart';
 import 'package:booking_app/ui/layout/edit_info_page.dart';
+import 'package:booking_app/ui/layout/information_page.dart';
 import 'package:booking_app/ui/layout/profile.dart';
 import 'package:booking_app/utils/myFunction.dart';
 import 'package:booking_app/validator/validator.dart';
@@ -51,7 +52,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => BookingManager()),
         ChangeNotifierProvider(create: (_) => MyFunctions()),
         ChangeNotifierProvider(create: (_) => NotificationManager()),
-        ChangeNotifierProvider(create: (_) => Validator())
+        ChangeNotifierProvider(create: (_) => Validator()),
       ],
       child: const AppRoot(),
     );
@@ -190,6 +191,7 @@ class _AppRootState extends State<AppRoot> {
             return EditInfoPage();
           },
         ),
+        GoRoute(path: '/myinfo', builder: (_, __) => InformationPage()),
       ],
     );
   }

@@ -69,4 +69,16 @@ class User {
   String get emailText => email?.trim() ?? "";
   String get userId => id.trim();
   String get userName => username.trim();
+  String get getRole {
+    switch (role) {
+      case 'customer':
+        return 'khách hàng';
+      case 'driver':
+        return 'tài xế';
+      case 'admin':
+        return 'quản trị viên';
+      default:
+        return 'không xác định';
+    }
+  }
 }

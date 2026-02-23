@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:booking_app/ui/shared/snackBarLogger.dart';
 import 'package:booking_app/ui/shared/textFieldForm.dart';
 import 'package:booking_app/validator/validator.dart';
+import 'package:logger/logger.dart';
 
 import 'auth_manager.dart';
 import 'package:go_router/go_router.dart';
@@ -30,6 +33,8 @@ class _RegisterState extends State<Register> {
   bool _isLoading = false;
   bool obscureTextPass = true;
   bool obscureTextConfirmPass = true;
+
+  final logger = Logger();
 
   Future<void> _pickAvatar() async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
@@ -108,6 +113,17 @@ class _RegisterState extends State<Register> {
       _passwordController,
       _avatar,
     );
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _firstnameController.dispose();
+    _lastnameController.dispose();
+    _passwordController.dispose();
+    _usernameController.dispose();
+    _phoneController.dispose();
+    super.dispose();
   }
 
   @override

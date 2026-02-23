@@ -21,6 +21,31 @@ class AuthService extends ChangeNotifier {
     }
   }
 
+Future<bool> updatePassword({
+    required String id,
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    try {
+      await pb
+          .collection('users')
+          .update(
+            id,
+            body: {
+              'oldPassword': oldPassword,
+              'password': newPassword,
+              'passwordConfirm': newPassword,
+            },
+          );
+      return true;
+    } on ClientException catch (e) {
+      logger.i('Lỗi đổi mật khẩu: ${e.response}');
+      return false;
+    }
+  }
+
+
+
   Future<bool> register({
     required String email,
     required String username,
@@ -72,7 +97,6 @@ class AuthService extends ChangeNotifier {
 
   Future<User?> update({
     required String id,
-    required String username,
     required String firstname,
     required String lastname,
     required String phone,
@@ -80,11 +104,9 @@ class AuthService extends ChangeNotifier {
   }) async {
     try {
       final body = {
-        'username': username,
         'firstname': firstname,
         'lastname': lastname,
         'phone': phone,
-        'role': 'customer',
         'isactive': true,
       };
 
