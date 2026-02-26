@@ -18,30 +18,26 @@ class NotificationManager extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> addNotification(
+ Future<void> addNotification(
     String title,
     String type,
     String message,
     String userId,
   ) async {
-    // logger.i(message);
     final n = NotificationApp(
       title: title,
       type: type,
       userId: userId,
       message: message,
     );
+    await NotificationService().insertNotification(n);
     _notifications.insert(0, n);
     _unreadCount++;
-    await NotificationService().insertNotification(n);
     notifyListeners();
   }
 
-  Future<bool> removeNotificationById(int id, String userId) async {
-    final result = await NotificationService().removeNotificationById(
-      id,
-      userId,
-    );
+Future<bool> removeNotificationById(String id, String userId) async {
+    final result = await NotificationService().removeNotificationById(id);
     return result;
   }
 

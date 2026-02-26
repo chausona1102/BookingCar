@@ -39,11 +39,12 @@ class AuthManager extends ChangeNotifier {
     required String newPassword,
   }) async {
     if (_user == null) return false;
-    return await _authService.updatePassword(
+    final success = await _authService.updatePassword(
       id: _user!.id,
       oldPassword: oldPassword,
       newPassword: newPassword,
     );
+    return success;
   }
 
   Future<void> restoreLogin() async {

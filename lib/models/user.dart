@@ -1,4 +1,5 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:pocketbase/pocketbase.dart';
 
 class User {
   final String id;
@@ -25,13 +26,18 @@ class User {
     required this.createdAt,
   });
 
-  factory User.fromJson(Map<String, dynamic> json) {
+  factory User.fromJson(dynamic source) {
+    final json = source is RecordModel
+        ? source.toJson()
+        : source as Map<String, dynamic>;
+    final id = source is RecordModel ? source.id : json['id'];
+
     return User(
-      id: json['id'],
-      username: json['username'],
+      id: id ?? '',
+      username: json['username'] ?? '',
       firstName: json['firstname'],
       lastName: json['lastname'],
-      role: json['role'],
+      role: json['role'] ?? 'customer',
       email: json['email'],
       phone: json['phone'],
       avatar: json['avatar'],
@@ -80,5 +86,31 @@ class User {
       default:
         return 'không xác định';
     }
+  }
+
+  User copyWith({
+    String? id,
+    String? username,
+    String? firstName,
+    String? lastName,
+    String? role,
+    String? email,
+    String? phone,
+    String? avatar,
+    bool? isActive,
+    DateTime? createdAt,
+  }) {
+    return User(
+      id: id ?? this.id,
+      username: username ?? this.username,
+      firstName: firstName ?? this.firstName,
+      lastName: lastName ?? this.lastName,
+      role: role ?? this.role,
+      email: email ?? this.email,
+      phone: phone ?? this.phone,
+      avatar: avatar ?? this.avatar,
+      isActive: isActive ?? this.isActive,
+      createdAt: createdAt ?? this.createdAt,
+    );
   }
 }

@@ -43,7 +43,7 @@ class _LoginPageState extends State<LoginPage> {
       } else if (role == 'customer') {
         context.go('/');
       } else if (role == 'admin') {
-        context.go('/admin');
+        context.go('/admin-page');
       } else {
         context.go('/NotFound');
       }

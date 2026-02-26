@@ -1,5 +1,6 @@
 import 'package:booking_app/models/user.dart';
 import 'package:booking_app/ui/auth/auth_manager.dart';
+import 'package:booking_app/ui/notifications/notification_manager.dart';
 import 'package:booking_app/ui/shared/snackBarMessage.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/web.dart';
@@ -96,6 +97,12 @@ class _ChangePasswordOverlayState extends State<ChangePasswordOverlay> {
       return;
     }
 
+    context.read<NotificationManager>().addNotification(
+      "Thông báo từ hệ thống",
+      'success',
+      "Đã đổi mật khẩu",
+      user.id,
+    );
     Navigator.of(context).pop();
     snackBarMessage(context, 'Đổi mật khẩu thành công!', 'success');
   }

@@ -10,6 +10,7 @@ class AuthService extends ChangeNotifier {
   PocketBase get pb => pocketBase;
   final logger = Logger();
   Future<bool> login(String username, String password) async {
+    logger.i(pb.baseURL);
     try {
       await pb.collection('users').authWithPassword(username, password);
       notifyListeners();
@@ -21,7 +22,7 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-Future<bool> updatePassword({
+  Future<bool> updatePassword({
     required String id,
     required String oldPassword,
     required String newPassword,
@@ -44,8 +45,6 @@ Future<bool> updatePassword({
     }
   }
 
-
-
   Future<bool> register({
     required String email,
     required String username,
@@ -59,6 +58,7 @@ Future<bool> updatePassword({
       final body = {
         'email': email,
         'username': username,
+        'emailVisibility': true,
         'firstname': firstname,
         'lastname': lastname,
         'phone': phone,
@@ -107,7 +107,6 @@ Future<bool> updatePassword({
         'firstname': firstname,
         'lastname': lastname,
         'phone': phone,
-        'isactive': true,
       };
 
       RecordModel record;

@@ -1,4 +1,11 @@
 import 'package:booking_app/models/booking.dart';
+import 'package:booking_app/ui/layout/admin/manager/user_admin_manager.dart';
+import 'package:booking_app/ui/layout/admin/pages/admin_home_page.dart';
+import 'package:booking_app/ui/layout/admin/pages/bookings_manager_page.dart';
+import 'package:booking_app/ui/layout/admin/pages/driver_request_manager.dart';
+import 'package:booking_app/ui/layout/admin/pages/drivers_manager_page.dart';
+import 'package:booking_app/ui/layout/admin/pages/statistical_page.dart';
+import 'package:booking_app/ui/layout/admin/pages/users_manager_page.dart';
 import 'package:booking_app/ui/layout/customer/payment_manager.dart';
 import 'package:booking_app/ui/layout/customer/become_driver_page.dart';
 import 'package:booking_app/ui/layout/customer/become_vip_member_page.dart';
@@ -53,6 +60,8 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => MyFunctions()),
         ChangeNotifierProvider(create: (_) => NotificationManager()),
         ChangeNotifierProvider(create: (_) => Validator()),
+        // admin
+        ChangeNotifierProvider(create: (_) => UserAdminManager()),
       ],
       child: const AppRoot(),
     );
@@ -91,15 +100,18 @@ class _AppRootState extends State<AppRoot> {
         if (!loggedIn && !loggingIn && !registering) {
           return '/login';
         }
-
         if (loggedIn && (loggingIn || registering)) {
-          return _role == 'driver' ? '/driver-page' : '/';
+          if (_role == 'driver') return '/driver-page';
+          if (_role == 'admin') return '/admin-page';
+          return '/';
         }
 
         if (loggedIn && _role == 'driver' && state.matchedLocation == '/') {
           return '/driver-page';
         }
-
+        if (loggedIn && _role == 'admin' && state.matchedLocation == '/') {
+          return '/admin-page';
+        }
         return null;
       },
       routes: [
@@ -192,6 +204,23 @@ class _AppRootState extends State<AppRoot> {
           },
         ),
         GoRoute(path: '/myinfo', builder: (_, __) => InformationPage()),
+
+        // Admin pages
+        GoRoute(path: '/admin-page', builder: (_, __) => AdminHomePage()),
+        GoRoute(
+          path: '/bookings-manager',
+          builder: (_, __) => BookingsManagerPage(),
+        ),
+        GoRoute(path: '/users-manager', builder: (_, __) => UsersManagerPage()),
+        GoRoute(
+          path: '/drivers-manager',
+          builder: (_, __) => DriversManagerPage(),
+        ),
+        GoRoute(
+          path: '/driver-request-manager',
+          builder: (_, __) => DriverRequestManagerPage(),
+        ),
+        GoRoute(path: '/statistical', builder: (_, __) => StatisticalPage()),
       ],
     );
   }
