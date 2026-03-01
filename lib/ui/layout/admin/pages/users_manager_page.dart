@@ -1,8 +1,9 @@
 import 'package:booking_app/models/user.dart';
 import 'package:booking_app/ui/layout/admin/manager/user_admin_manager.dart';
 import 'package:booking_app/ui/layout/admin/pages/changeinfouseroverley.dart';
-import 'package:booking_app/ui/shared/button.dart';
+import 'package:booking_app/ui/shared/buttonPro.dart';
 import 'package:booking_app/ui/shared/myAppBar.dart';
+import 'package:booking_app/ui/shared/snackBarLogger.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:logger/logger.dart';
@@ -17,12 +18,17 @@ class UsersManagerPage extends StatefulWidget {
 class _UsersManagerPageState extends State<UsersManagerPage> {
   final logger = Logger();
   bool _isLoading = true;
+  late final UserAdminManager userManager;
+
+  final TextEditingController _searchController = TextEditingController();
+  bool _isSearching = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await context.read<UserAdminManager>().fetchUserLimit();
+      userManager = context.read<UserAdminManager>();
+      await userManager.fetchUserLimit();
       setState(() => _isLoading = false);
     });
   }
@@ -34,13 +40,68 @@ class _UsersManagerPageState extends State<UsersManagerPage> {
       appBar: myAppBar(context, 'Quản lý người dùng'),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : users.isEmpty
-          ? const Center(child: Text('Không có người dùng'))
-          : ListView.builder(
-              padding: const EdgeInsets.all(12),
-              itemCount: users.length,
-              itemBuilder: (context, index) => _buildRow(users[index]),
+          : Column(
+              children: [
+                _buildSearch(),
+                if (_isSearching)
+                  const Padding(
+                    padding: EdgeInsets.all(8),
+                    child: LinearProgressIndicator(),
+                  ),
+                Expanded(
+                  child: users.isEmpty
+                      ? const Center(child: Text('Không có người dùng'))
+                      : ListView.builder(
+                          padding: const EdgeInsets.all(12),
+                          itemCount: users.length,
+                          itemBuilder: (context, index) =>
+                              _buildRow(users[index]),
+                        ),
+                ),
+              ],
             ),
+    );
+  }
+
+  Widget _buildSearch() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+      child: TextField(
+        controller: _searchController,
+        onChanged: (value) async {
+          if (value.trim().isEmpty) {
+            await userManager.fetchUserLimit();
+            return;
+          }
+          setState(() => _isSearching = true);
+          await userManager.search(value.trim());
+          setState(() => _isSearching = false);
+        },
+        decoration: InputDecoration(
+          hintText: 'Tìm theo tên, username, email...',
+          prefixIcon: const Icon(Icons.search),
+          suffixIcon: _searchController.text.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.clear),
+                  onPressed: () async {
+                    _searchController.clear();
+                    await userManager.fetchUserLimit();
+                    setState(() {});
+                  },
+                )
+              : null,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          filled: true,
+          fillColor: Colors.grey.shade100,
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 0,
+            horizontal: 16,
+          ),
+        ),
+      ),
     );
   }
 
@@ -52,13 +113,7 @@ class _UsersManagerPageState extends State<UsersManagerPage> {
         leading: ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: user.avatarUrl != null
-              ? Image.network(
-                  user.avatarUrl!,
-                  width: 50,
-                  height: 50,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => _defaultAvatar(),
-                )
+              ? _avatar(user.avatarUrl!, user.isActive)
               : _defaultAvatar(),
         ),
         title: Text(
@@ -98,6 +153,40 @@ class _UsersManagerPageState extends State<UsersManagerPage> {
     );
   }
 
+  Widget _avatar(avatar, bool isActive) {
+    // logger.i(isActive);
+    return Stack(
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.network(
+            avatar,
+            width: 50,
+            height: 50,
+            fit: BoxFit.cover,
+          ),
+        ),
+        Positioned(
+          top: 2,
+          // left: 2,
+          right: 2,
+          child: Container(
+            width: 16,
+            height: 16,
+            decoration: BoxDecoration(
+              color: isActive ? Colors.green : Colors.grey,
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: const Color.fromARGB(255, 255, 255, 255),
+                width: 1,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _defaultAvatar() {
     return Container(
       width: 50,
@@ -129,14 +218,41 @@ class _UsersManagerPageState extends State<UsersManagerPage> {
             const SizedBox(height: 16),
             Row(
               children: [
-                button('Chỉnh sửa', 'warning', () {
+                buttonPro('✒️ Chỉnh sửa', 'success', () {
                   Navigator.pop(context);
                   ChangeInfoUserOverley.show(context, user);
-                }),
+                }, filled: true),
                 const SizedBox(width: 8),
-                button('Khóa tài khoản', 'error', () => print(user.id)),
+                buttonPro('🔐 Khóa tài khoản', 'warning', () async {
+                  final success = await userManager.toggleIsActive(user.id);
+                  if (!success) {
+                    snackBarLogger(context, "Thao tác thất bại", 'error');
+                  }
+                  snackBarLogger(
+                    context,
+                    'Thao tác thành công với ${user.id}',
+                    'success',
+                  );
+                }, filled: true),
                 const SizedBox(width: 8),
-                button('Xóa', 'error', () => print(user.id)),
+                buttonPro('🗑️ Xóa', 'error', () async {
+                  final success = await userManager.deleteUserById(
+                    context,
+                    user.id,
+                  );
+                  if (!success) {
+                    // snackBarLogger(context, "Xoá không thành công", 'error');
+                    return;
+                  }
+                  snackBarLogger(
+                    context,
+                    'Đã xóa tài khoản ${user.id}',
+                    'success',
+                  );
+                  setState(() {
+                    userManager.users.removeWhere((r) => r.id == user.id);
+                  });
+                }, filled: true),
               ],
             ),
             const SizedBox(height: 16),

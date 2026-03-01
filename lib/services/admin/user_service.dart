@@ -1,9 +1,12 @@
 import 'dart:io';
 
 import 'package:booking_app/models/user.dart';
+import 'package:booking_app/ui/shared/snackBarLogger.dart';
+import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:pocketbase/pocketbase.dart';
 import '../pb_client.dart';
+// ignore: depend_on_referenced_packages
 import 'package:http/http.dart' as http;
 
 class UserService {
@@ -23,6 +26,58 @@ class UserService {
       }).toList();
     } catch (e) {
       logger.e(e);
+      return [];
+    }
+  }
+
+  Future<bool> deleteUserById(BuildContext context, String id) async {
+    logger.i('Deleting...');
+    try {
+      await pb.collection('users').delete(id);
+      return true;
+    } on ClientException catch (e) {
+      final data = e.response;
+      final message = data['message'];
+      if (message ==
+          'Failed to delete record. Make sure that the record is not part of a required relation reference.') {
+        snackBarLogger(context, 'Không thể xóa! Xóa tài xế trước', 'warning');
+      } else {
+        snackBarLogger(context, 'Không thể xóa!', 'warning');
+      }
+      return false;
+    }
+  }
+
+  Future<bool> toggleActive(String id) async {
+    try {
+      final record = await pb.collection('users').getOne(id);
+      final currentActive = record.data['isactive'] as bool;
+
+      await pb
+          .collection('users')
+          .update(id, body: {'isactive': !currentActive});
+      return true;
+    } on ClientException catch (e) {
+      final data = e.response;
+      logger.i(data);
+      return false;
+    }
+  }
+
+  Future<List<User>?> search(String key) async {
+    try {
+      final records = await pb
+          .collection('users')
+          .getList(
+            filter:
+                'id ~ "$key" || username ~ "$key" || firstname ~ "$key" || lastname ~ "$key"',
+          );
+      return records.items.map((e) {
+        final json = e.toJson();
+        json['id'] = e.id;
+        return User.fromJson(json);
+      }).toList();
+    } catch (e) {
       return [];
     }
   }

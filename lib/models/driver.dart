@@ -1,5 +1,9 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:pocketbase/pocketbase.dart';
 import 'user.dart';
+import 'package:logger/logger.dart';
+
+final logger = Logger();
 
 class Driver {
   final String id;
@@ -37,5 +41,28 @@ class Driver {
       carnumber: r.getStringValue('carnumber'),
       isonline: r.data['isonline'] ?? false,
     );
+  }
+
+  String get typeCar {
+    switch (typecar) {
+      case 'car':
+        return 'Ô tô';
+      case 'motobike':
+        return 'Xe máy';
+      default:
+        return 'Ô tô';
+    }
+  }
+
+  String? get carImageURL {
+    // ignore: unnecessary_null_comparison
+    if (carimage == null || carimage.isEmpty) return null;
+
+    final baseUrl = dotenv.env['POCKETBASE_URL'];
+    final collection = dotenv.env['POCKETBASE_COLLECTION_DRIVER'] ?? 'drivers';
+
+    if (baseUrl == null || baseUrl.isEmpty) return null;
+
+    return '$baseUrl/api/files/$collection/$id/$carimage';
   }
 }

@@ -29,6 +29,9 @@ class _AdminHomePageState extends State<AdminHomePage> {
       body: Column(
         children: [
           _buildHeader(user),
+          if (MediaQuery.of(context).size.width > 920) ...[
+            const SizedBox(height: 20),
+          ],
           Expanded(
             child: SingleChildScrollView(
               padding: isLandscape

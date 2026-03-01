@@ -3,7 +3,7 @@ import 'package:pocketbase/pocketbase.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 final pocketBase = PocketBase(
-  dotenv.env['POCKETBASE_URL'] ?? 'http://10.10.123.192:8090',
+  dotenv.env['POCKETBASE_URL'] ?? 'http://10.0.2.2:8090',
 );
 
 PocketBase? _pocketbase;

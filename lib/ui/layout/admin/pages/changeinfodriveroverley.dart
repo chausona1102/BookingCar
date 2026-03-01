@@ -1,8 +1,7 @@
 import 'dart:io';
 
-import 'package:booking_app/models/user.dart';
-import 'package:booking_app/ui/layout/admin/manager/user_admin_manager.dart';
-import 'package:booking_app/ui/notifications/notification_manager.dart';
+import 'package:booking_app/models/driver.dart';
+import 'package:booking_app/ui/layout/admin/manager/driver_admin_manager.dart';
 import 'package:booking_app/ui/shared/snackBarLogger.dart';
 import 'package:booking_app/ui/shared/snackBarMessage.dart';
 import 'package:flutter/material.dart';
@@ -10,16 +9,16 @@ import 'package:image_picker/image_picker.dart';
 import 'package:logger/web.dart';
 import 'package:provider/provider.dart';
 
-class ChangeInfoUserOverley extends StatefulWidget {
-  final User user;
-  const ChangeInfoUserOverley({super.key, required this.user});
-  static Future<User?> show(BuildContext context, User user) {
-    return showGeneralDialog<User>(
+class ChangeInfoDriverOverley extends StatefulWidget {
+  final Driver driver;
+  const ChangeInfoDriverOverley({super.key, required this.driver});
+  static Future<Driver?> show(BuildContext context, Driver driver) {
+    return showGeneralDialog<Driver>(
       context: context,
       barrierDismissible: true,
       barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
       transitionDuration: const Duration(milliseconds: 350),
-      pageBuilder: (_, __, ___) => ChangeInfoUserOverley(user: user),
+      pageBuilder: (_, __, ___) => ChangeInfoDriverOverley(driver: driver),
       transitionBuilder: (context, animation, secondaryAnimation, child) {
         final curved = CurvedAnimation(
           parent: animation,
@@ -37,10 +36,11 @@ class ChangeInfoUserOverley extends StatefulWidget {
   }
 
   @override
-  State<ChangeInfoUserOverley> createState() => _ChangeInfoUserOverleyState();
+  State<ChangeInfoDriverOverley> createState() =>
+      _ChangeInfoDriverOverleyState();
 }
 
-class _ChangeInfoUserOverleyState extends State<ChangeInfoUserOverley> {
+class _ChangeInfoDriverOverleyState extends State<ChangeInfoDriverOverley> {
   final _formKey = GlobalKey<FormState>();
 
   final _firstNameCtrl = TextEditingController();
@@ -48,25 +48,29 @@ class _ChangeInfoUserOverleyState extends State<ChangeInfoUserOverley> {
   final _usernameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
+  final _licenseCtrl = TextEditingController();
+  final _numberCarCtrl = TextEditingController();
 
   final ImagePicker _picker = ImagePicker();
-  File? _avatar;
+  File? _carImage;
 
   final logger = Logger();
 
   bool _isLoading = false;
 
-  late User user;
+  late Driver driver;
   @override
   void initState() {
     super.initState();
-    user = widget.user;
+    driver = widget.driver;
 
-    _firstNameCtrl.text = user.firstName ?? "";
-    _lastNameCtrl.text = user.lastName ?? "";
-    _usernameCtrl.text = user.userName;
-    _emailCtrl.text = user.email ?? "";
-    _phoneCtrl.text = user.phone ?? "";
+    _firstNameCtrl.text = driver.user.firstName ?? "";
+    _lastNameCtrl.text = driver.user.lastName ?? "";
+    _usernameCtrl.text = driver.user.userName;
+    _emailCtrl.text = driver.user.email ?? "";
+    _phoneCtrl.text = driver.user.phone ?? "";
+    _licenseCtrl.text = driver.licensenumber;
+    _numberCarCtrl.text = driver.carnumber;
   }
 
   @override
@@ -74,11 +78,11 @@ class _ChangeInfoUserOverleyState extends State<ChangeInfoUserOverley> {
     super.dispose();
   }
 
-  Future<void> _pickAvatar() async {
+  Future<void> _pickCarImage() async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
       setState(() {
-        _avatar = File(image.path);
+        _carImage = File(image.path);
       });
     } else {
       snackBarLogger(context, 'Ảnh không tồn tại', 'warning');
@@ -87,34 +91,31 @@ class _ChangeInfoUserOverleyState extends State<ChangeInfoUserOverley> {
 
   Future<void> _handleSubmit() async {
     if (!_formKey.currentState!.validate()) return;
-
     setState(() => _isLoading = true);
 
-    final success = await context.read<UserAdminManager>().update(
-      id: user.id,
-      firstname: _firstNameCtrl.text.trim(),
-      lastname: _lastNameCtrl.text.trim(),
-      username: _usernameCtrl.text.trim(),
-      email: _emailCtrl.text.trim(),
-      phone: _phoneCtrl.text.trim(),
-      avatar: _avatar,
+    print('Handle Submit');
+    final success = await context.read<DriverAdminManager>().update(
+      id: driver.id,
+      licenseNumber: _licenseCtrl.text.trim(),
+      carNumber: _numberCarCtrl.text.trim(),
+      carImage: _carImage,
     );
-
     if (!mounted) return;
-
-    setState(() => _isLoading = false);
-
+    setState(() {
+      _isLoading = false;
+    });
     if (!success) {
       snackBarMessage(context, "Cập nhật thất bại!", "error");
       return;
     }
-
     snackBarMessage(context, "Cập nhật thành công!", "success");
     Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
+    logger.i(driver.carImageURL);
+    logger.i(driver.carimage);
     return Scaffold(
       // backgroundColor: const Color(0xFFF4F7F5),
       backgroundColor: Colors.green.shade50,
@@ -130,9 +131,9 @@ class _ChangeInfoUserOverleyState extends State<ChangeInfoUserOverley> {
                   child: Column(
                     children: [
                       const SizedBox(height: 10),
-                      _buildAvatarSection(),
+                      _buildCarImageSection(),
                       const SizedBox(height: 30),
-                      _buildInputCard(user),
+                      _buildInputCard(driver),
                       const SizedBox(height: 30),
                       _buildSaveButton(),
                     ],
@@ -168,7 +169,7 @@ class _ChangeInfoUserOverleyState extends State<ChangeInfoUserOverley> {
     );
   }
 
-  Widget _buildInputCard(User user) {
+  Widget _buildInputCard(Driver driver) {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -184,21 +185,21 @@ class _ChangeInfoUserOverleyState extends State<ChangeInfoUserOverley> {
       ),
       child: Column(
         children: [
-          _buildTextField("Họ và tên đệm", _firstNameCtrl),
+          _buildTextField("Username", _usernameCtrl, enable: false),
           const SizedBox(height: 16),
-          _buildTextField("Tên", _lastNameCtrl),
+          _buildTextField("Email", _emailCtrl, enable: false),
           const SizedBox(height: 16),
-          _buildTextField("Username", _usernameCtrl),
+          _buildTextField("Số điện thoại", _phoneCtrl, enable: false),
           const SizedBox(height: 16),
-          _buildTextField("Email", _emailCtrl),
+          _buildTextField("License Num:", _licenseCtrl, enable: true),
           const SizedBox(height: 16),
-          _buildTextField("Số điện thoại", _phoneCtrl),
+          _buildTextField("Car Num:", _numberCarCtrl, enable: true),
         ],
       ),
     );
   }
 
-  Widget _buildAvatarSection() {
+  Widget _buildCarImageSection() {
     return Column(
       children: [
         Stack(
@@ -207,15 +208,17 @@ class _ChangeInfoUserOverleyState extends State<ChangeInfoUserOverley> {
               child: CircleAvatar(
                 radius: 60,
                 backgroundColor: Colors.green.shade200,
-                backgroundImage: _avatar != null
-                    ? FileImage(_avatar!)
-                    : (user.avatar != null && user.avatar!.isNotEmpty
-                              ? NetworkImage(user.avatarUrl!)
+                backgroundImage: _carImage != null
+                    ? FileImage(_carImage!)
+                    // ignore: unnecessary_null_comparison
+                    : (driver.carimage != null && driver.carimage.isNotEmpty
+                              ? NetworkImage(driver.carImageURL!)
                               : null)
                           as ImageProvider?,
                 child:
-                    (_avatar == null &&
-                        (user.avatar == null || user.avatar!.isEmpty))
+                    (_carImage == null &&
+                        // ignore: unnecessary_null_comparison
+                        (driver.carimage == null || driver.carimage.isEmpty))
                     ? const Icon(
                         Icons.camera_alt,
                         size: 30,
@@ -236,7 +239,7 @@ class _ChangeInfoUserOverleyState extends State<ChangeInfoUserOverley> {
                 ),
                 child: IconButton(
                   onPressed: () {
-                    _pickAvatar();
+                    _pickCarImage();
                   },
                   icon: Icon(Icons.edit_square, color: Colors.white),
                 ),
@@ -246,14 +249,18 @@ class _ChangeInfoUserOverleyState extends State<ChangeInfoUserOverley> {
         ),
         const SizedBox(height: 12),
         Text(
-          user.fullName,
+          driver.user.fullName,
           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
         ),
       ],
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller) {
+  Widget _buildTextField(
+    String label,
+    TextEditingController controller, {
+    required bool enable,
+  }) {
     return TextFormField(
       controller: controller,
       validator: (v) {
@@ -265,6 +272,7 @@ class _ChangeInfoUserOverleyState extends State<ChangeInfoUserOverley> {
       style: const TextStyle(fontSize: 14),
       decoration: InputDecoration(
         labelText: label,
+        enabled: enable,
         filled: true,
         fillColor: const Color(0xFFF4F7F5),
         border: OutlineInputBorder(

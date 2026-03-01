@@ -10,7 +10,7 @@ class User {
   final String? email;
   final String? phone;
   final String? avatar;
-  final bool isActive;
+  bool isActive;
   final DateTime createdAt;
 
   User({
@@ -41,7 +41,7 @@ class User {
       email: json['email'],
       phone: json['phone'],
       avatar: json['avatar'],
-      isActive: json['is_active'] ?? true,
+      isActive: json['isactive'] ?? true,
       createdAt: DateTime.tryParse(json['created'] ?? '') ?? DateTime.now(),
     );
   }
@@ -55,7 +55,7 @@ class User {
       'role': role,
       'phone': phone,
       'avatar': avatar,
-      'is_active': isActive,
+      'isactive': isActive,
     };
   }
 
@@ -112,5 +112,13 @@ class User {
       isActive: isActive ?? this.isActive,
       createdAt: createdAt ?? this.createdAt,
     );
+  }
+
+  String get getStatus {
+    if (isActive) {
+      return 'Hoạt động';
+    } else {
+      return 'Bị khóa';
+    }
   }
 }
