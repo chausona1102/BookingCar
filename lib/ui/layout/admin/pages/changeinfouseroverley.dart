@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:booking_app/models/user.dart';
 import 'package:booking_app/ui/layout/admin/manager/user_admin_manager.dart';
-import 'package:booking_app/ui/notifications/notification_manager.dart';
 import 'package:booking_app/ui/shared/snackBarLogger.dart';
 import 'package:booking_app/ui/shared/snackBarMessage.dart';
 import 'package:flutter/material.dart';

@@ -42,6 +42,7 @@ class _DriversManagerPageState extends State<DriversManagerPage> {
     final drivers = context.watch<DriverAdminManager>().drivers;
     return Scaffold(
       appBar: myAppBar(context, 'Quản lý tài xế'),
+      backgroundColor: Colors.green.shade50,
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Column(
@@ -110,6 +111,7 @@ class _DriversManagerPageState extends State<DriversManagerPage> {
   }
 
   Widget _buildRow(Driver driver) {
+    logger.i(driver.user.avatarUrl);
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 6),
       child: ListTile(
@@ -252,20 +254,6 @@ class _DriversManagerPageState extends State<DriversManagerPage> {
                   ChangeInfoDriverOverley.show(context, driver);
                 }, filled: true),
                 const SizedBox(width: 10),
-                // buttonPro('🔐 Khóa/mở', 'warning', () async {
-                //   final success = await userManager.toggleIsActive(
-                //     driver.user.id,
-                //   );
-                //   if (!success) {
-                //     snackBarLogger(context, "Thao tác thất bại", 'error');
-                //   }
-                //   snackBarLogger(
-                //     context,
-                //     'Thao tác thành công với ${driver.user.id}',
-                //     'success',
-                //   );
-                // }, filled: true),
-                // const SizedBox(width: 10),
                 buttonPro('🗑️ Xóa', 'error', () async {
                   final success = await driverManager.deleteDriverById(
                     driver.id,

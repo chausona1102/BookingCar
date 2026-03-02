@@ -9,13 +9,12 @@ import 'package:logger/web.dart';
 class DriverAdminManager extends ChangeNotifier {
   final logger = Logger();
   Timer? _debounce;
-  final DriverAdminService driverAdminService = DriverAdminService();
   List<Driver> drivers = [];
 
   final DriverAdminService _driverAdminService = DriverAdminService();
 
   Future<void> fetchDriverLimit() async {
-    drivers = (await driverAdminService.fetchDriverLimit())!;
+    drivers = (await _driverAdminService.fetchDriverLimit())!;
     notifyListeners();
   }
 
@@ -26,7 +25,7 @@ class DriverAdminManager extends ChangeNotifier {
     File? carImage,
   }) async {
     try {
-      final success = await driverAdminService.update(
+      final success = await _driverAdminService.update(
         id: id,
         licenseNumber: licenseNumber,
         carNumber: carNumber,

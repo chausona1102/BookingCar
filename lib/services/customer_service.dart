@@ -8,16 +8,7 @@ import 'pb_client.dart';
 
 class CustomerService extends ChangeNotifier {
   PocketBase get pb => pocketBase;
-  Future<bool> changeRole({required String user}) async {
-    try {
-      print('userid: $user');
-      await pb.collection('users').update(user, body: {'role': 'driver'});
-      return true;
-    } catch (e) {
-      debugPrint('Lỗi changeRole: $e');
-      return false;
-    }
-  }
+  
 
   Future<bool> addDriverRequest({
     required String licensenumber,

@@ -38,6 +38,7 @@ class _UsersManagerPageState extends State<UsersManagerPage> {
     final users = context.watch<UserAdminManager>().users;
     return Scaffold(
       appBar: myAppBar(context, 'Quản lý người dùng'),
+      backgroundColor: Colors.green.shade50,
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Column(
