@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import '../models/notification.dart';
 
 class NotificationService {
-  static const String baseUrl = 'http://10.10.126.171:3000/api/notifications';
+  static const String baseUrl = 'http://10.10.112.109:3000/api/notifications';
   Future<List<NotificationApp>> getNotificationsOfUser(String userId) async {
     final response = await http.get(Uri.parse('$baseUrl/user/$userId'));
     if (response.statusCode == 200) {

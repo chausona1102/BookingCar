@@ -25,11 +25,10 @@ class Driver {
   });
 
   factory Driver.fromRecord(RecordModel r) {
-    // ignore: unnecessary_cast
     final expanded = r.expand['user'] as List<RecordModel>?;
 
     if (expanded == null || expanded.isEmpty) {
-      throw Exception('Driver ${r.id} không có user expand');
+      throw Exception('Driver ${r.id} has no user expand');
     }
 
     return Driver(
@@ -41,6 +40,40 @@ class Driver {
       carnumber: r.getStringValue('carnumber'),
       isonline: r.data['isonline'] ?? false,
     );
+  }
+
+  factory Driver.fromJson(Map<String, dynamic> json) {
+    final userJson = json['expand']?['user'];
+
+    final resolvedUserJson = userJson is List
+        ? (userJson.isNotEmpty ? userJson.first as Map<String, dynamic> : null)
+        : userJson as Map<String, dynamic>?;
+
+    if (resolvedUserJson == null) {
+      throw Exception('Driver ${json['id']} has no user expand');
+    }
+
+    return Driver(
+      id: json['id'].toString(),
+      typecar: json['typecar']?.toString() ?? '',
+      licensenumber: json['licensenumber']?.toString() ?? '',
+      user: User.fromJson(resolvedUserJson),
+      carimage: json['carimage']?.toString() ?? '',
+      carnumber: json['carnumber']?.toString() ?? '',
+      isonline: json['isonline'] ?? false,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'typecar': typecar,
+      'licensenumber': licensenumber,
+      'user': user.toJson(),
+      'carimage': carimage,
+      'carnumber': carnumber,
+      'isonline': isonline,
+    };
   }
 
   String get typeCar {
@@ -55,8 +88,7 @@ class Driver {
   }
 
   String? get carImageURL {
-    // ignore: unnecessary_null_comparison
-    if (carimage == null || carimage.isEmpty) return null;
+    if (carimage.isEmpty) return null;
 
     final baseUrl = dotenv.env['POCKETBASE_URL'];
     final collection = dotenv.env['POCKETBASE_COLLECTION_DRIVER'] ?? 'drivers';

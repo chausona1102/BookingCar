@@ -336,7 +336,7 @@ class _DriverTripTrackingPageState extends State<DriverTripTrackingPage>
                   const SizedBox(height: 14),
 
                   FutureBuilder<User?>(
-                    future: customerManager.fetchUserById(booking.userId),
+                    future: customerManager.fetchUserById(booking.user.id),
                     builder: (context, snap) {
                       if (!snap.hasData) {
                         return _infoRow(
@@ -503,8 +503,8 @@ class _DriverTripTrackingPageState extends State<DriverTripTrackingPage>
           appBar: myAppBarPro(context, 'Theo dõi cuốc xe'),
           body: FutureBuilder(
             future: Future.wait([
-              bookingManager.getLocationById(id: booking.pickupLocationId),
-              bookingManager.getLocationById(id: booking.dropoffLocationId),
+              Future.value(booking.pickupLocation),
+              Future.value(booking.dropoffLocation),
             ]),
             builder: (context, snap) {
               if (!snap.hasData) {

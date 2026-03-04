@@ -15,7 +15,7 @@ class DriverAdminService {
   }
 
   Future<List<Driver>?> fetchDriverLimit() async {
-    logger.i('Fetching....');
+    logger.i('Fetching Drivers....');
     try {
       final records = await pb
           .collection('drivers')
@@ -67,7 +67,7 @@ class DriverAdminService {
   }
 
   Future<List<Driver>?> search(String key) async {
-    logger.i('Search: $key');
+    logger.i('Searching: $key');
     try {
       final result = await pb
           .collection('drivers')

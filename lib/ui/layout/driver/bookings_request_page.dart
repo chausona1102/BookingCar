@@ -60,13 +60,8 @@ class _BookingsRequestPageState extends State<BookingsRequestPage> {
             itemBuilder: (_, i) {
               final booking = bookings[i];
 
-              bookingManager.fetchLocation(booking.pickupLocationId);
-              bookingManager.fetchLocation(booking.dropoffLocationId);
-
-              final pickUpLocation =
-                  bookingManager.locations[booking.pickupLocationId];
-              final dropOffLocation =
-                  bookingManager.locations[booking.dropoffLocationId];
+              final pickUpLocation = booking.pickupLocation;
+              final dropOffLocation = booking.dropoffLocation;
 
               return Card(
                 shape: RoundedRectangleBorder(

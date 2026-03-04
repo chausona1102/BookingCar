@@ -2,6 +2,7 @@ import 'package:booking_app/models/driver.dart';
 import 'package:booking_app/ui/layout/admin/manager/driver_admin_manager.dart';
 import 'package:booking_app/ui/layout/admin/manager/user_admin_manager.dart';
 import 'package:booking_app/ui/layout/admin/pages/changeinfodriveroverley.dart';
+import 'package:booking_app/ui/shared/buildRowInfo.dart';
 import 'package:booking_app/ui/shared/buttonPro.dart';
 import 'package:booking_app/ui/shared/myAppBar.dart';
 import 'package:booking_app/ui/shared/snackBarLogger.dart';
@@ -111,7 +112,6 @@ class _DriversManagerPageState extends State<DriversManagerPage> {
   }
 
   Widget _buildRow(Driver driver) {
-    logger.i(driver.user.avatarUrl);
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 6),
       child: ListTile(
@@ -220,7 +220,20 @@ class _DriversManagerPageState extends State<DriversManagerPage> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 10),
+            Row(
+              children: [
+                Spacer(),
+                IconButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  icon: Icon(
+                    Icons.cancel,
+                    color: Color.fromARGB(255, 243, 112, 103),
+                  ),
+                ),
+              ],
+            ),
             Center(
               child: Text(
                 driver.user.fullName.isNotEmpty
@@ -233,19 +246,19 @@ class _DriversManagerPageState extends State<DriversManagerPage> {
               ),
             ),
             const SizedBox(height: 16),
-            _buildRowInfo('Username:', driver.user.username),
+            buildRowInfo('Username:', driver.user.username),
             const SizedBox(height: 10),
-            _buildRowInfo('Email:', driver.user.emailText),
+            buildRowInfo('Email:', driver.user.emailText),
             const SizedBox(height: 10),
-            _buildRowInfo('Phone:', driver.user.phoneNumber),
+            buildRowInfo('Phone:', driver.user.phoneNumber),
             const SizedBox(height: 10),
-            _buildRowInfo('Status:', driver.user.getStatus),
+            buildRowInfo('Status:', driver.user.getStatus),
             const SizedBox(height: 10),
-            _buildRowInfo('Bằng lái:', driver.licensenumber),
+            buildRowInfo('Bằng lái:', driver.licensenumber),
             const SizedBox(height: 10),
-            _buildRowInfo('Biển số:', driver.carnumber),
+            buildRowInfo('Biển số:', driver.carnumber),
             const SizedBox(height: 10),
-            _buildRowInfo('Loại xe:', driver.typeCar),
+            buildRowInfo('Loại xe:', driver.typeCar),
             const SizedBox(height: 15),
             Row(
               children: [
@@ -277,37 +290,6 @@ class _DriversManagerPageState extends State<DriversManagerPage> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildRowInfo(String title, String info) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Expanded(
-          flex: 4,
-          child: Text(
-            title,
-            style: TextStyle(
-              color: Colors.black38,
-              fontWeight: FontWeight.w600,
-              fontSize: 16,
-            ),
-          ),
-        ),
-        Expanded(
-          flex: 6,
-          child: Text(
-            info,
-            style: TextStyle(
-              color: Colors.black,
-              fontWeight: FontWeight.w600,
-              fontSize: 16,
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

@@ -124,10 +124,11 @@ class DriverService {
           .getList(
             filter: "driver = null && status = 'pending'",
             sort: '-bookingtime',
+            expand: 'pickuplocation,dropofflocation,user',
           );
       return records.items.map((e) => BookingModel.fromRecord(e)).toList();
     } catch (e) {
-      logger.i('Không tìm thấy Bookings');
+      logger.i('Không tìm thấy Bookings: $e');
       return null;
     }
   }
@@ -194,6 +195,7 @@ class DriverService {
           .getList(
             filter:
                 "driver = '$driverId' && status != 'pending' && status != 'completed' && status != 'cancelled'",
+            expand: 'user,pickuplocation,dropofflocation',
             sort: '-bookingtime',
             perPage: 1,
           );

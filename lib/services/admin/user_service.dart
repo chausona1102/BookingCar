@@ -14,7 +14,7 @@ class UserService {
   final logger = Logger();
 
   Future<List<User>> fetchUserLimit() async {
-    logger.i('Fetching....');
+    logger.i('Fetching Users....');
     try {
       final records = await pb
           .collection('users')
@@ -31,7 +31,7 @@ class UserService {
   }
 
   Future<bool> deleteUserById(BuildContext context, String id) async {
-    logger.i('Deleting...');
+    logger.i('Deleting "$id"...');
     try {
       await pb.collection('users').delete(id);
       return true;

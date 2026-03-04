@@ -134,7 +134,6 @@ class BookingManager extends ChangeNotifier {
 
   Future<bool> checkTracing(BuildContext context, {required userId}) async {
     final tracing = await getCurrentTracing(userId: userId);
-
     if (tracing != null) {
       // snackBarLogger(context, 'Bạn đang trong cuốc xe!', 'error');
       return true;

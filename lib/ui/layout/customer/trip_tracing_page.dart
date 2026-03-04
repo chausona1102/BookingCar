@@ -2,7 +2,6 @@ import 'package:booking_app/models/booking.dart';
 import 'package:booking_app/models/driver.dart';
 import 'package:booking_app/ui/auth/auth_manager.dart';
 import 'package:booking_app/ui/layout/customer/booking_manager.dart';
-import 'package:booking_app/ui/layout/driver/driver_manager.dart';
 import 'package:booking_app/ui/shared/backPositioned.dart';
 import 'package:booking_app/ui/shared/iconSvg.dart';
 import 'package:booking_app/ui/shared/myAppBarPro.dart';
@@ -36,7 +35,7 @@ class _TripTracingState extends State<TripTracingPage>
   bool _sheetVisible = false;
 
   Future<Driver?>? _driverFuture;
-  Future<List<dynamic>>? _locationFuture;
+  List<dynamic>? _locationData;
 
   String? _cachedDriverId;
   String? _cachedBookingId;
@@ -71,25 +70,21 @@ class _TripTracingState extends State<TripTracingPage>
     super.didChangeDependencies();
 
     final bookingManager = context.read<BookingManager>();
-    final driverManager = context.read<DriverManager>();
     final booking = bookingManager.currentBooking;
 
     if (booking == null) return;
 
     if (_cachedBookingId != booking.id) {
       _cachedBookingId = booking.id;
-      _locationFuture = Future.wait([
-        bookingManager.getLocationById(id: booking.pickupLocationId),
-        bookingManager.getLocationById(id: booking.dropoffLocationId),
-      ]);
+      _locationData = [booking.pickupLocation, booking.dropoffLocation];
     }
 
-    final driverId = booking.driverId;
+    final driverId = booking.driver?.id;
     if (driverId != null &&
         driverId.isNotEmpty &&
         _cachedDriverId != driverId) {
       _cachedDriverId = driverId;
-      _driverFuture = driverManager.fetchDriverById(id: driverId);
+      _driverFuture = Future.value(booking.driver);
     } else if (driverId == null || driverId.isEmpty) {
       _driverFuture ??= Future.value(null);
     }
@@ -227,19 +222,15 @@ class _TripTracingState extends State<TripTracingPage>
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: isLandscape ? null : myAppBarPro(context, 'Theo dõi cuốc xe'),
+
       body: booking == null
           ? _buildEmptyState()
-          : _locationFuture == null
+          : _locationData == null
           ? const Center(child: SpinKitCircle(color: Colors.green, size: 50))
-          : FutureBuilder(
-              future: _locationFuture,
-              builder: (context, snap) {
-                if (!snap.hasData) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                final pickup = snap.data![0]!;
-                final dropoff = snap.data![1]!;
+          : Builder(
+              builder: (context) {
+                final pickup = _locationData![0];
+                final dropoff = _locationData![1];
 
                 final pickupLatLng = LatLng(
                   double.parse(pickup.latitude),

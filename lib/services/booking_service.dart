@@ -53,10 +53,12 @@ class BookingService extends ChangeNotifier {
           .collection('bookings')
           .getFirstListItem(
             'user = "$userId" && status != "completed" && status != "cancelled"',
+            expand: 'user,driver,driver.user,pickuplocation,dropofflocation',
           );
       // logger.i(record.data);
       return BookingModel.fromRecord(record);
-    } catch (e) {
+    } on ClientException catch (e) {
+      logger.i(e.response);
       logger.i('Không tìm thấy Bookings');
       return null;
     }
@@ -81,7 +83,9 @@ class BookingService extends ChangeNotifier {
             page: 1,
             perPage: 1,
             filter:
-                'user = "$userId" && status != "completed" &&status != "cancelled"',
+                'user = "$userId" && status != "completed" && status != "cancelled"',
+            expand: 'user,driver,driver.user,pickuplocation,dropofflocation',
+
             sort: '-bookingtime',
           );
 
@@ -161,6 +165,7 @@ class BookingService extends ChangeNotifier {
           .getList(
             filter:
                 'user = "$userId" && (status = "completed" || status = "cancelled")',
+            expand: 'user,driver,driver.user,pickuplocation,dropofflocation',
             sort: '-bookingtime',
           );
 
@@ -180,6 +185,7 @@ class BookingService extends ChangeNotifier {
           .getList(
             filter:
                 'driver = "$driver" && (status = "completed" || status = "cancelled")',
+            expand: 'user,driver,driver.user,pickuplocation,dropofflocation',
             sort: '-bookingtime',
           );
       return records.items

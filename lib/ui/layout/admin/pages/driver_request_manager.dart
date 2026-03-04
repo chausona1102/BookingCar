@@ -1,6 +1,7 @@
 import 'package:booking_app/models/driverrequest.dart';
 import 'package:booking_app/ui/layout/admin/manager/driver_request_admin_manager.dart';
 import 'package:booking_app/ui/layout/admin/manager/user_admin_manager.dart';
+import 'package:booking_app/ui/shared/buildRowInfo.dart';
 import 'package:booking_app/ui/shared/buttonPro.dart';
 import 'package:booking_app/ui/shared/myAppBar.dart';
 import 'package:booking_app/ui/shared/snackBarLogger.dart';
@@ -226,75 +227,112 @@ class _DriverRequestManagerPageState extends State<DriverRequestManagerPage> {
       ),
       builder: (_) => Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 10),
-
-            Center(
-              child: Text(
-                request.user.fullName.isNotEmpty
-                    ? request.user.fullName
-                    : request.user.userName,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            _buildRowInfo('Username:', request.user.username),
-            const SizedBox(height: 10),
-            _buildRowInfo('Email:', request.user.emailText),
-            const SizedBox(height: 10),
-            _buildRowInfo('Phone:', request.user.phoneNumber),
-            const SizedBox(height: 10),
-            _buildRowInfo('Status:', request.user.getStatus),
-            const SizedBox(height: 10),
-            _buildRowInfo('Bằng lái:', request.licensenumber),
-            const SizedBox(height: 10),
-            _buildRowInfo('Biển số:', request.carnumber),
-            const SizedBox(height: 10),
-            _buildRowInfo('Loại xe:', request.typeCar),
-            const SizedBox(height: 10),
-            Center(
-              child: CircleAvatar(
-                radius: 60,
-                backgroundColor: Colors.green.shade200,
-                backgroundImage: NetworkImage(request.carImageURL!),
-              ),
-            ),
-            const SizedBox(height: 10),
-            Center(
-              child: Text(
-                'Ảnh xe',
-                style: TextStyle(
-                  color: Colors.black38,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
-                ),
-              ),
-            ),
-            const SizedBox(height: 15),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        child: ScrollConfiguration(
+          behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
+          child: SingleChildScrollView(
+            child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (request.status == 'requested') ...[
-                  Row(
-                    children: [
-                      buttonPro('✔️ Duyệt', 'success', () async {
-                        final success = await requestManager
-                            .updateStatusAccepted(
-                              id: request.id,
-                              status: 'accepted',
-                              user: request.user.id,
-                              licensenumber: request.licensenumber,
-                              typecar: request.typecar,
-                              carnumber: request.carnumber,
-                              carImageURL: request.carImageURL,
+                Row(
+                  children: [
+                    Spacer(),
+                    IconButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      icon: Icon(
+                        Icons.cancel,
+                        color: Color.fromARGB(255, 243, 112, 103),
+                      ),
+                    ),
+                  ],
+                ),
+                Center(
+                  child: Text(
+                    request.user.fullName.isNotEmpty
+                        ? request.user.fullName
+                        : request.user.userName,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                buildRowInfo('Username:', request.user.username),
+                const SizedBox(height: 10),
+                buildRowInfo('Email:', request.user.emailText),
+                const SizedBox(height: 10),
+                buildRowInfo('Phone:', request.user.phoneNumber),
+                const SizedBox(height: 10),
+                buildRowInfo('Status:', request.user.getStatus),
+                const SizedBox(height: 10),
+                buildRowInfo('Bằng lái:', request.licensenumber),
+                const SizedBox(height: 10),
+                buildRowInfo('Biển số:', request.carnumber),
+                const SizedBox(height: 10),
+                buildRowInfo('Loại xe:', request.typeCar),
+                const SizedBox(height: 10),
+                Center(
+                  child: CircleAvatar(
+                    radius: 60,
+                    backgroundColor: Colors.green.shade200,
+                    backgroundImage: NetworkImage(request.carImageURL!),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Center(
+                  child: Text(
+                    'Ảnh xe',
+                    style: TextStyle(
+                      color: Colors.black38,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 15),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (request.status == 'requested') ...[
+                      Row(
+                        children: [
+                          buttonPro('✔️ Duyệt', 'success', () async {
+                            final success = await requestManager
+                                .updateStatusAccepted(
+                                  id: request.id,
+                                  status: 'accepted',
+                                  user: request.user.id,
+                                  licensenumber: request.licensenumber,
+                                  typecar: request.typecar,
+                                  carnumber: request.carnumber,
+                                  carImageURL: request.carImageURL,
+                                );
+                            if (!success) {
+                              snackBarLogger(
+                                context,
+                                'Cập nhật thất bại',
+                                'error',
+                              );
+                              return;
+                            }
+                            snackBarLogger(
+                              context,
+                              'Cập nhật thành công',
+                              'success',
                             );
+                            Navigator.pop(context);
+                            await requestManager.fetchRequestLimit();
+                          }, filled: true),
+                        ],
+                      ),
+                      const SizedBox(width: 8),
+                      buttonPro('❌ Từ chối', 'warning', () async {
+                        final success = await requestManager
+                            .updateStatusCancelled(request.id);
                         if (!success) {
                           snackBarLogger(context, 'Cập nhật thất bại', 'error');
                           return;
@@ -308,58 +346,14 @@ class _DriverRequestManagerPageState extends State<DriverRequestManagerPage> {
                         await requestManager.fetchRequestLimit();
                       }, filled: true),
                     ],
-                  ),
-                  const SizedBox(width: 8),
-                  buttonPro('❌ Từ chối', 'warning', () async {
-                    final success = await requestManager.updateStatusCancelled(
-                      request.id,
-                    );
-                    if (!success) {
-                      snackBarLogger(context, 'Cập nhật thất bại', 'error');
-                      return;
-                    }
-                    snackBarLogger(context, 'Cập nhật thành công', 'success');
-                    Navigator.pop(context);
-                    await requestManager.fetchRequestLimit();
-                  }, filled: true),
-                ],
+                  ],
+                ),
+                const SizedBox(height: 16),
               ],
             ),
-            const SizedBox(height: 16),
-          ],
+          ),
         ),
       ),
-    );
-  }
-
-  Widget _buildRowInfo(String title, String info) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Expanded(
-          flex: 4,
-          child: Text(
-            title,
-            style: TextStyle(
-              color: Colors.black38,
-              fontWeight: FontWeight.w600,
-              fontSize: 16,
-            ),
-          ),
-        ),
-        Expanded(
-          flex: 6,
-          child: Text(
-            info,
-            style: TextStyle(
-              color: Colors.black,
-              fontWeight: FontWeight.w600,
-              fontSize: 16,
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

@@ -212,6 +212,20 @@ class _UsersManagerPageState extends State<UsersManagerPage> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Row(
+              children: [
+                Spacer(),
+                IconButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  icon: Icon(
+                    Icons.cancel,
+                    color: Color.fromARGB(255, 243, 112, 103),
+                  ),
+                ),
+              ],
+            ),
             Text(
               user.fullName.isNotEmpty ? user.fullName : user.userName,
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
