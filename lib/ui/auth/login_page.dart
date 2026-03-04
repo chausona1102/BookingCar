@@ -30,7 +30,6 @@ class _LoginPageState extends State<LoginPage> {
 
     final authManager = context.read<AuthManager>();
     final success = await authManager.login(username, password);
-
     setState(() => _isLoading = false);
 
     if (success) {

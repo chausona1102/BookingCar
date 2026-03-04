@@ -1,0 +1,178 @@
+import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:booking_app/ui/layout/admin/manager/statistical_manager.dart';
+
+class RevenueLineChart extends StatefulWidget {
+  final int year;
+  const RevenueLineChart({super.key, required this.year});
+
+  @override
+  State<RevenueLineChart> createState() => _RevenueLineChartState();
+}
+
+class _RevenueLineChartState extends State<RevenueLineChart> {
+  late List<FlSpot> spots;
+  double maxY = 0;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _buildSpots();
+  }
+
+  void _buildSpots() {
+    final m = context.read<StatisticalManager>();
+    spots = List.generate(12, (i) {
+      final month = i + 1;
+      final total =
+          m.revenueAnalysisByMonth(month, year: widget.year)['total'] ?? 0;
+      if (total > maxY) maxY = total;
+      return FlSpot(month.toDouble(), total);
+    });
+    // đảm bảo maxY không bằng 0
+    if (maxY == 0) maxY = 100000;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.fromLTRB(12, 20, 20, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 8),
+            child: Text(
+              'Doanh thu ${widget.year}',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            height: 220,
+            child: LineChart(
+              LineChartData(
+                minX: 1,
+                maxX: 12,
+                minY: 0,
+                maxY: maxY * 1.2,
+                gridData: FlGridData(
+                  show: true,
+                  drawVerticalLine: false,
+                  horizontalInterval: maxY / 4,
+                  getDrawingHorizontalLine: (_) =>
+                      FlLine(color: Colors.grey.shade100, strokeWidth: 1),
+                ),
+                borderData: FlBorderData(show: false),
+                titlesData: FlTitlesData(
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 48,
+                      interval: maxY / 4,
+                      getTitlesWidget: (value, _) => Text(
+                        _formatShort(value),
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey.shade500,
+                        ),
+                      ),
+                    ),
+                  ),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      interval: 1,
+                      getTitlesWidget: (value, _) => Text(
+                        'T${value.toInt()}',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey.shade500,
+                        ),
+                      ),
+                    ),
+                  ),
+                  rightTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  topTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                ),
+                lineTouchData: LineTouchData(
+                  touchTooltipData: LineTouchTooltipData(
+                    getTooltipItems: (spots) => spots
+                        .map(
+                          (s) => LineTooltipItem(
+                            'T${s.x.toInt()}\n${_formatVND(s.y)}',
+                            const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ),
+                lineBarsData: [
+                  LineChartBarData(
+                    spots: spots,
+                    isCurved: true,
+                    curveSmoothness: 0.35,
+                    color: Colors.green,
+                    barWidth: 3,
+                    dotData: FlDotData(
+                      show: true,
+                      getDotPainter: (spot, _, __, ___) => FlDotCirclePainter(
+                        radius: spot.y > 0 ? 5 : 3,
+                        color: Colors.white,
+                        strokeWidth: 2.5,
+                        strokeColor: Colors.green,
+                      ),
+                    ),
+                    belowBarData: BarAreaData(
+                      show: true,
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.green.withOpacity(0.25),
+                          Colors.green.withOpacity(0.0),
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatShort(double value) {
+    if (value >= 1000000) return '${(value / 1000000).toStringAsFixed(1)}M';
+    if (value >= 1000) return '${(value / 1000).toStringAsFixed(0)}K';
+    return value.toStringAsFixed(0);
+  }
+
+  String _formatVND(double value) {
+    if (value >= 1000000) return '${(value / 1000000).toStringAsFixed(1)}M đ';
+    if (value >= 1000) return '${(value / 1000).toStringAsFixed(0)}K đ';
+    return '${value.toStringAsFixed(0)} đ';
+  }
+}

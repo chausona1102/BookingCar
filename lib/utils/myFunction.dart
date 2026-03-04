@@ -111,4 +111,12 @@ Future<String> getPlaceName(LatLng latLng) async {
         return 'Đang chờ';
     }
   }
+  String formatVND(double value) {
+    if (value >= 1000000) {
+      return '${(value / 1000000).toStringAsFixed(1)}M đ';
+    } else if (value >= 1000) {
+      return '${(value / 1000).toStringAsFixed(0)}K đ';
+    }
+    return '${value.toStringAsFixed(0)} đ';
+  }
 }

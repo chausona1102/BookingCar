@@ -2,6 +2,7 @@ import 'package:booking_app/models/booking.dart';
 import 'package:booking_app/ui/layout/admin/manager/booking_admin_manager.dart';
 import 'package:booking_app/ui/layout/admin/manager/driver_admin_manager.dart';
 import 'package:booking_app/ui/layout/admin/manager/driver_request_admin_manager.dart';
+import 'package:booking_app/ui/layout/admin/manager/statistical_manager.dart';
 import 'package:booking_app/ui/layout/admin/manager/user_admin_manager.dart';
 import 'package:booking_app/ui/layout/admin/pages/admin_home_page.dart';
 import 'package:booking_app/ui/layout/admin/pages/bookings_manager_page.dart';
@@ -68,6 +69,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => DriverAdminManager()),
         ChangeNotifierProvider(create: (_) => DriverRequestAdminManager()),
         ChangeNotifierProvider(create: (_) => BookingAdminManager()),
+        ChangeNotifierProvider(create: (_) => StatisticalManager()),
       ],
       child: const AppRoot(),
     );

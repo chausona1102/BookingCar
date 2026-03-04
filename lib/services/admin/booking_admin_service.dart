@@ -22,7 +22,7 @@ class BookingAdminService {
         try {
           result.add(BookingModel.fromRecord(r));
         } catch (e) {
-          logger.e('Lỗi parse booking ${r.id}: $e'); // booking nào bị lỗi
+          logger.e('Lỗi parse booking ${r.id}: $e');
         }
       }
       return result;
@@ -31,6 +31,23 @@ class BookingAdminService {
       return [];
     } catch (e, stack) {
       logger.e('Unexpected error: $e\n$stack');
+      return [];
+    }
+  }
+
+  Future<List<BookingModel>?> search(String key) async {
+    logger.i('Searching: $key');
+    try {
+      final result = await pb
+          .collection('bookings')
+          .getList(
+            expand: 'user,driver,driver.user,pickuplocation,dropofflocation',
+            filter:
+                'id ~ "$key" || driver.id ~ "$key" || user.id ~ "$key" || pickuplocation.placename ~ "$key" || user.lastname ~ "$key" || user.firstname ~ "$key" || user.email ~ "$key"',
+          );
+      return result.items.map((r) => BookingModel.fromRecord(r)).toList();
+    } catch (e) {
+      logger.e(e);
       return [];
     }
   }

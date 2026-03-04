@@ -1,7 +1,6 @@
 import 'package:booking_app/models/booking.dart';
 import 'package:booking_app/ui/layout/admin/manager/booking_admin_manager.dart';
 import 'package:booking_app/ui/shared/buildRowInfo.dart';
-import 'package:booking_app/ui/shared/buttonPro.dart';
 import 'package:booking_app/ui/shared/myAppBar.dart';
 import 'package:booking_app/utils/myFunction.dart';
 import 'package:flutter/material.dart';
@@ -20,7 +19,8 @@ class _BookingsManagerPageState extends State<BookingsManagerPage> {
   bool _isLoading = true;
   late final BookingAdminManager bookingManager;
   late final MyFunctions myFn;
-
+  final TextEditingController _searchController = TextEditingController();
+  bool _isSearching = false;
   @override
   void initState() {
     super.initState();
@@ -52,12 +52,12 @@ class _BookingsManagerPageState extends State<BookingsManagerPage> {
           ? Center(child: CircularProgressIndicator(color: Colors.green))
           : Column(
               children: [
-                // _buildSearch(),
-                // if (_isSearching)
-                //   const Padding(
-                //     padding: EdgeInsets.all(8),
-                //     child: LinearProgressIndicator(),
-                //   ),
+                _buildSearch(),
+                if (_isSearching)
+                  const Padding(
+                    padding: EdgeInsets.all(8),
+                    child: LinearProgressIndicator(),
+                  ),
                 Expanded(
                   child: bookings.isEmpty
                       ? const Center(child: Text('Không có người dùng'))
@@ -73,6 +73,48 @@ class _BookingsManagerPageState extends State<BookingsManagerPage> {
     );
   }
 
+  Widget _buildSearch() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+      child: TextField(
+        controller: _searchController,
+        onChanged: (value) async {
+          if (value.trim().isEmpty) {
+            await bookingManager.fetchBookingLimit();
+            return;
+          }
+          setState(() => _isSearching = true);
+          await bookingManager.search(value.trim());
+          setState(() => _isSearching = false);
+        },
+        decoration: InputDecoration(
+          hintText: 'Tìm theo tên, username, email...',
+          prefixIcon: const Icon(Icons.search),
+          suffixIcon: _searchController.text.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.clear),
+                  onPressed: () async {
+                    _searchController.clear();
+                    await bookingManager.fetchBookingLimit();
+                    setState(() {});
+                  },
+                )
+              : null,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          filled: true,
+          fillColor: Colors.grey.shade100,
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 0,
+            horizontal: 16,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildRow(BookingModel booking) {
     final driver = booking.driver;
     return Card(
@@ -83,7 +125,7 @@ class _BookingsManagerPageState extends State<BookingsManagerPage> {
           children: [
             Expanded(
               child: Text(
-                '#${booking.id?.substring(0, 8) ?? '---'}',
+                '#${booking.id?.substring(0, 8) ?? '---'}...',
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
@@ -191,7 +233,6 @@ class _BookingsManagerPageState extends State<BookingsManagerPage> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 10),
             Row(
               children: [
                 Spacer(),
@@ -217,9 +258,26 @@ class _BookingsManagerPageState extends State<BookingsManagerPage> {
               ),
             ),
             const SizedBox(height: 16),
-            buildRowInfo('ID', booking.id!),
+            buildRowInfo('ID:', booking.id!),
             const SizedBox(height: 10),
-            const SizedBox(height: 16),
+            buildRowInfo('Khách hàng:', booking.user.fullName),
+            const SizedBox(height: 10),
+            buildRowInfo(
+              'Tài xế',
+              booking.driver?.user.fullName ?? 'Chưa có tài xế',
+            ),
+            const SizedBox(height: 10),
+            buildRowInfo('Điểm đón:', booking.pickupLocation.placeName),
+            const SizedBox(height: 10),
+            buildRowInfo('Điểm đến:', booking.dropoffLocation.placeName),
+            const SizedBox(height: 10),
+            buildRowInfo('Ngày đặt:', booking.bookingTimeFormatted),
+            const SizedBox(height: 10),
+            buildRowInfo(
+              'Tổng tiền: ',
+              '${myFn.convertToVND(booking.price.toString())}đ',
+            ),
+            const SizedBox(height: 30),
           ],
         ),
       ),

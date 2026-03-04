@@ -1,6 +1,7 @@
 import 'package:booking_app/models/user.dart';
 import 'package:booking_app/ui/layout/admin/manager/user_admin_manager.dart';
 import 'package:booking_app/ui/layout/admin/pages/changeinfouseroverley.dart';
+import 'package:booking_app/ui/shared/buildRowInfo.dart';
 import 'package:booking_app/ui/shared/buttonPro.dart';
 import 'package:booking_app/ui/shared/myAppBar.dart';
 import 'package:booking_app/ui/shared/snackBarLogger.dart';
@@ -226,49 +227,71 @@ class _UsersManagerPageState extends State<UsersManagerPage> {
                 ),
               ],
             ),
-            Text(
-              user.fullName.isNotEmpty ? user.fullName : user.userName,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            Center(
+              child: Text(
+                user.fullName.isNotEmpty ? user.fullName : user.userName,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
             ),
             const SizedBox(height: 16),
-            Row(
-              children: [
-                buttonPro('✒️ Chỉnh sửa', 'success', () {
-                  Navigator.pop(context);
-                  ChangeInfoUserOverley.show(context, user);
-                }, filled: true),
-                const SizedBox(width: 8),
-                buttonPro('🔐 Khóa tài khoản', 'warning', () async {
-                  final success = await userManager.toggleIsActive(user.id);
-                  if (!success) {
-                    snackBarLogger(context, "Thao tác thất bại", 'error');
-                  }
-                  snackBarLogger(
-                    context,
-                    'Thao tác thành công với ${user.id}',
-                    'success',
-                  );
-                }, filled: true),
-                const SizedBox(width: 8),
-                buttonPro('🗑️ Xóa', 'error', () async {
-                  final success = await userManager.deleteUserById(
-                    context,
-                    user.id,
-                  );
-                  if (!success) {
-                    // snackBarLogger(context, "Xoá không thành công", 'error');
-                    return;
-                  }
-                  snackBarLogger(
-                    context,
-                    'Đã xóa tài khoản ${user.id}',
-                    'success',
-                  );
-                  setState(() {
-                    userManager.users.removeWhere((r) => r.id == user.id);
-                  });
-                }, filled: true),
-              ],
+            buildRowInfo('ID:', user.id),
+            const SizedBox(height: 10),
+            buildRowInfo('Tài khoản:', user.username),
+            const SizedBox(height: 10),
+            buildRowInfo('Email:', user.emailText),
+            const SizedBox(height: 10),
+            buildRowInfo('SĐT:', user.phoneNumber),
+            const SizedBox(height: 10),
+            buildRowInfo('Vai trò:', user.getRole.toUpperCase()),
+            const SizedBox(height: 10),
+            buildRowInfo('Trạng thái:', user.getStatus),
+            const SizedBox(height: 20),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  buttonPro('✒️ Chỉnh sửa', 'success', () {
+                    Navigator.pop(context);
+                    ChangeInfoUserOverley.show(context, user);
+                  }, filled: true),
+                  const SizedBox(width: 8),
+                  buttonPro('🔐 Khóa tài khoản', 'warning', () async {
+                    final success = await userManager.toggleIsActive(user.id);
+                    if (!success) {
+                      snackBarLogger(context, "Thao tác thất bại", 'error');
+                    }
+                    Navigator.pop(context);
+                    snackBarLogger(
+                      context,
+                      'Thao tác thành công với ${user.id}',
+                      'success',
+                    );
+                  }, filled: true),
+                  const SizedBox(width: 8),
+                  buttonPro('🗑️ Xóa', 'error', () async {
+                    final success = await userManager.deleteUserById(
+                      context,
+                      user.id,
+                    );
+                    if (!success) {
+                      // snackBarLogger(context, "Xoá không thành công", 'error');
+                      return;
+                    }
+                    snackBarLogger(
+                      context,
+                      'Đã xóa tài khoản ${user.id}',
+                      'success',
+                    );
+                    Navigator.pop(context);
+                    setState(() {
+                      userManager.users.removeWhere((r) => r.id == user.id);
+                    });
+                  }, filled: true),
+                ],
+              ),
             ),
             const SizedBox(height: 16),
           ],

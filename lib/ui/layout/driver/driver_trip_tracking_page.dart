@@ -511,8 +511,8 @@ class _DriverTripTrackingPageState extends State<DriverTripTrackingPage>
                 return const Center(child: CircularProgressIndicator());
               }
 
-              final pickup = snap.data![0]!;
-              final dropoff = snap.data![1]!;
+              final pickup = snap.data![0];
+              final dropoff = snap.data![1];
 
               final pickupLatLng = LatLng(
                 double.parse(pickup.latitude),

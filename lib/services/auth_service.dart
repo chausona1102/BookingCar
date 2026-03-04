@@ -13,11 +13,26 @@ class AuthService extends ChangeNotifier {
     logger.i(pb.baseURL);
     try {
       await pb.collection('users').authWithPassword(username, password);
+      if (!await checkIsActive(username)) {
+        return false;
+      }
       notifyListeners();
       return pb.authStore.isValid;
     } on ClientException catch (e) {
       final data = e.response;
       logger.i(data);
+      return false;
+    }
+  }
+
+  Future<bool> checkIsActive(String username) async {
+    try {
+      final user = await pb
+          .collection('users')
+          .getFirstListItem('username = "$username"');
+      return user.data['isactive'];
+    } on ClientException catch (e) {
+      logger.i(e.response);
       return false;
     }
   }
