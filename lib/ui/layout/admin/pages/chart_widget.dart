@@ -1,3 +1,4 @@
+import 'package:booking_app/utils/myFunction.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -30,12 +31,12 @@ class _RevenueLineChartState extends State<RevenueLineChart> {
       if (total > maxY) maxY = total;
       return FlSpot(month.toDouble(), total);
     });
-    // đảm bảo maxY không bằng 0
     if (maxY == 0) maxY = 100000;
   }
 
   @override
   Widget build(BuildContext context) {
+    final myFns = context.read<MyFunctions>();
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -83,7 +84,7 @@ class _RevenueLineChartState extends State<RevenueLineChart> {
                       reservedSize: 48,
                       interval: maxY / 4,
                       getTitlesWidget: (value, _) => Text(
-                        _formatShort(value),
+                        myFns.formatShort(value),
                         style: TextStyle(
                           fontSize: 10,
                           color: Colors.grey.shade500,
@@ -116,7 +117,7 @@ class _RevenueLineChartState extends State<RevenueLineChart> {
                     getTooltipItems: (spots) => spots
                         .map(
                           (s) => LineTooltipItem(
-                            'T${s.x.toInt()}\n${_formatVND(s.y)}',
+                            'T${s.x.toInt()}\n${myFns.formatVND(s.y)}',
                             const TextStyle(
                               color: Colors.white,
                               fontSize: 12,
@@ -162,17 +163,5 @@ class _RevenueLineChartState extends State<RevenueLineChart> {
         ],
       ),
     );
-  }
-
-  String _formatShort(double value) {
-    if (value >= 1000000) return '${(value / 1000000).toStringAsFixed(1)}M';
-    if (value >= 1000) return '${(value / 1000).toStringAsFixed(0)}K';
-    return value.toStringAsFixed(0);
-  }
-
-  String _formatVND(double value) {
-    if (value >= 1000000) return '${(value / 1000000).toStringAsFixed(1)}M đ';
-    if (value >= 1000) return '${(value / 1000).toStringAsFixed(0)}K đ';
-    return '${value.toStringAsFixed(0)} đ';
   }
 }

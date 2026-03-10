@@ -2,6 +2,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:pocketbase/pocketbase.dart';
 import 'user.dart';
 import 'package:logger/logger.dart';
+import 'package:intl/intl.dart';
 
 final logger = Logger();
 
@@ -13,6 +14,8 @@ class DriverRequest {
   final User user;
   final String carimage;
   final String carnumber;
+  final DateTime? createat;
+  final DateTime? updated;
 
   DriverRequest({
     required this.id,
@@ -22,11 +25,12 @@ class DriverRequest {
     required this.user,
     required this.carimage,
     required this.carnumber,
+    this.createat,
+    this.updated,
   });
 
   factory DriverRequest.fromRecord(RecordModel r) {
-    // ignore: unnecessary_cast
-    final expanded = r.expand['user'] as List<RecordModel>?;
+    final expanded = (r.expand['user'] as List?)?.cast<RecordModel>();
 
     if (expanded == null || expanded.isEmpty) {
       throw Exception('DriverRequest ${r.id} không có user expand');
@@ -40,6 +44,8 @@ class DriverRequest {
       user: User.fromJson(expanded.first.toJson()),
       carimage: r.getStringValue('carimage'),
       carnumber: r.getStringValue('carnumber'),
+      createat: DateTime.tryParse(r.getStringValue('createat')),
+      updated: DateTime.tryParse(r.updated),
     );
   }
 
@@ -67,9 +73,32 @@ class DriverRequest {
     }
   }
 
+  String get createTimeFormatted {
+    return DateFormat('dd/MM/yyyy HH:mm').format(createat!);
+  }
+
+  String get createDate {
+    return DateFormat('dd/MM/yyyy').format(createat!);
+  }
+
+  String get createHour {
+    return DateFormat('HH:mm').format(createat!);
+  }
+
+  String get updateTimeFormatted {
+    return DateFormat('dd/MM/yyyy HH:mm').format(updated!);
+  }
+
+  String get updateDate {
+    return DateFormat('dd/MM/yyyy').format(updated!);
+  }
+
+  String get updateHour {
+    return DateFormat('HH:mm').format(updated!);
+  }
+
   String? get carImageURL {
-    // ignore: unnecessary_null_comparison
-    if (carimage == null || carimage.isEmpty) return null;
+    if (carimage.isEmpty) return null;
 
     final baseUrl = dotenv.env['POCKETBASE_URL'];
     final collection =

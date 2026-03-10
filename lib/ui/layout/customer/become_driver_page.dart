@@ -1,5 +1,10 @@
+import 'package:booking_app/models/driverrequest.dart';
+import 'package:booking_app/ui/shared/avatarCircle.dart';
+import 'package:booking_app/ui/shared/buildRowInfo.dart';
+import 'package:booking_app/ui/shared/buttonPro.dart';
 import 'package:booking_app/ui/shared/myAppBar.dart';
 import 'package:booking_app/ui/shared/snackBarLogger.dart';
+import 'package:booking_app/ui/shared/textField.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -8,7 +13,6 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../auth/auth_manager.dart';
 import '../../auth/customer_manager.dart';
-// import 'package:image_picker/image_picker.dart';
 
 enum TypeCar { car, motorbike }
 
@@ -22,12 +26,16 @@ class BecomeDriverPage extends StatefulWidget {
 class _BecomeDriverPage extends State<BecomeDriverPage> {
   final _licensenumber = TextEditingController();
   final _carnumber = TextEditingController();
-
+  late final CustomerManager manager;
+  late final AuthManager authManager;
+  DriverRequest? myRequest;
   TypeCar? _selectedTypeCar;
 
   File? _carimage;
-  bool _isLoading = false;
+  bool _isLoadingPage = true;
+  bool _isLoadingButton = false;
   final ImagePicker _picker = ImagePicker();
+
   Future<void> _pickImage() async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
@@ -38,7 +46,6 @@ class _BecomeDriverPage extends State<BecomeDriverPage> {
   }
 
   Future<void> _register() async {
-    final authManager = context.read<AuthManager>();
     final userId = authManager.currentUserId;
 
     if (userId == null) {
@@ -52,44 +59,118 @@ class _BecomeDriverPage extends State<BecomeDriverPage> {
       return;
     }
 
-    setState(() => _isLoading = true);
+    setState(() => _isLoadingButton = true);
 
     try {
-      final success = await context.read<CustomerManager>().addDriverRequest(
+      final success = await manager.addDriverRequest(
         licensenumber: _licensenumber.text.trim(),
         typecar: _selectedTypeCar!.name,
         user: userId,
         carimage: _carimage,
         carnumber: _carnumber.text.trim(),
       );
-      // print(_licensenumber.text.trim());
-      // print(_selectedTypeCar!.name);
-      // print(userId);
-      // print(_carimage);
 
       if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(success ? 'Đăng ký thành công!' : 'Đăng ký thất bại!'),
-        ),
-      );
 
       if (success) {
         snackBarLogger(context, 'Rùa nhỏ chào mừng rùa newbie!', 'success');
         context.go('/profile');
+      } else {
+        snackBarLogger(context, 'Đăng ký thất bại!', 'warning');
       }
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoadingButton = false);
     }
   }
 
   @override
+  void initState() {
+    super.initState();
+    manager = context.read<CustomerManager>();
+    authManager = context.read<AuthManager>();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final request = await manager.fetchRequestByUserID(
+        authManager.currentUserId!,
+      );
+      if (mounted) {
+        setState(() {
+          myRequest = request;
+          _isLoadingPage = false;
+        });
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_isLoadingPage) {
+      return const Scaffold(
+        body: Center(child: SpinKitCircle(color: Colors.green)),
+      );
+    }
+
+    if (myRequest != null) {
+      return Scaffold(
+        appBar: myAppBar(context, 'Đăng ký làm tài xế'),
+        backgroundColor: Colors.green.shade50,
+        body: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
+          child: Column(
+            children: [
+              Center(child: avatarCircle(myRequest!.user, 90)),
+              const SizedBox(height: 20),
+              buildRowInfo('Họ và tên: ', myRequest!.user.fullName),
+              const SizedBox(height: 10),
+              buildRowInfo('Email: ', myRequest!.user.emailText),
+              const SizedBox(height: 10),
+              buildRowInfo('SĐT: ', myRequest!.user.phoneNumber),
+              const SizedBox(height: 10),
+              buildRowInfo('SH bằng lái: ', myRequest!.licensenumber),
+              const SizedBox(height: 10),
+              buildRowInfo('Biển số xe: ', myRequest!.carnumber),
+              const SizedBox(height: 10),
+              buildRowInfo('Trạng thái: ', myRequest!.getStatus),
+              const SizedBox(height: 10),
+              if (myRequest!.createat != null)
+                buildRowInfo('Ngày gửi đơn: ', myRequest!.createTimeFormatted),
+              const SizedBox(height: 10),
+              if (myRequest!.updated != null)
+                buildRowInfo(
+                  'Cập nhật lần cuối: ',
+                  myRequest!.updateTimeFormatted,
+                ),
+
+              if (myRequest!.status == 'cancelled') ...[
+                const SizedBox(height: 20),
+                buttonPro('Gửi lại yêu cầu', 'success', () async {
+                  final success = await manager.retryDriverRequest(
+                    myRequest!.id,
+                  );
+                  if (!success) {
+                    snackBarLogger(context, 'Thất bại', 'error');
+                  }
+                  snackBarLogger(context, 'Đã gửi lại yêu cầu', 'success');
+                  setState(() => _isLoadingPage = true);
+                  final request = await manager.fetchRequestByUserID(
+                    authManager.currentUserId!,
+                  );
+                  if (mounted) {
+                    setState(() {
+                      myRequest = request;
+                      _isLoadingPage = false;
+                    });
+                  }
+                }),
+              ],
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: myAppBar(context, 'Đăng ký làm tài xế'),
       backgroundColor: Colors.green.shade50,
-
       body: SingleChildScrollView(
         child: Center(
           child: Padding(
@@ -98,7 +179,7 @@ class _BecomeDriverPage extends State<BecomeDriverPage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const SizedBox(height: 60),
-                Text(
+                const Text(
                   'Đăng ký làm tài xế',
                   style: TextStyle(
                     fontSize: 26,
@@ -119,7 +200,6 @@ class _BecomeDriverPage extends State<BecomeDriverPage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                // tài khoản
                 DropdownButtonFormField<TypeCar>(
                   value: _selectedTypeCar,
                   decoration: const InputDecoration(
@@ -135,9 +215,7 @@ class _BecomeDriverPage extends State<BecomeDriverPage> {
                     ),
                   ],
                   onChanged: (value) {
-                    setState(() {
-                      _selectedTypeCar = value;
-                    });
+                    setState(() => _selectedTypeCar = value);
                   },
                 ),
                 const SizedBox(height: 16),
@@ -150,7 +228,6 @@ class _BecomeDriverPage extends State<BecomeDriverPage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                // mật khẩu
                 GestureDetector(
                   onTap: _pickImage,
                   child: CircleAvatar(
@@ -169,11 +246,10 @@ class _BecomeDriverPage extends State<BecomeDriverPage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                // nút đăng nhập
                 SizedBox(
                   width: double.infinity,
-                  child: _isLoading
-                      ? SpinKitFadingCircle(color: Colors.green, size: 30)
+                  child: _isLoadingButton
+                      ? const SpinKitFadingCircle(color: Colors.green, size: 30)
                       : ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.green.shade300,
@@ -195,9 +271,7 @@ class _BecomeDriverPage extends State<BecomeDriverPage> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {
-                      context.go('/profile');
-                    },
+                    onPressed: () => context.go('/profile'),
                     child: const Text('Hủy bỏ'),
                   ),
                 ),

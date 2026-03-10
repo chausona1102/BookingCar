@@ -1,3 +1,4 @@
+import 'package:booking_app/models/driverrequest.dart';
 import 'package:booking_app/models/membership.dart';
 import 'package:booking_app/models/user.dart';
 import 'package:flutter/material.dart';
@@ -20,6 +21,13 @@ class CustomerManager extends ChangeNotifier {
       carimage: carimage,
       carnumber: carnumber,
     );
+  }
+
+  Future<DriverRequest> fetchRequestByUserID(String userId) async {
+    return (await _customerService.fetchRequestByUserID(userId))!;
+  }
+  Future<bool> retryDriverRequest(String id) async {
+    return _customerService.retryDriverRequest(id);
   }
 
   // Future<bool> hasMembership({required String user}) async {

@@ -119,4 +119,10 @@ Future<String> getPlaceName(LatLng latLng) async {
     }
     return '${value.toStringAsFixed(0)} đ';
   }
+
+  String formatShort(double value) {
+    if (value >= 1000000) return '${(value / 1000000).toStringAsFixed(1)}M';
+    if (value >= 1000) return '${(value / 1000).toStringAsFixed(0)}K';
+    return value.toStringAsFixed(0);
+  }
 }

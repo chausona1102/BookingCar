@@ -1,3 +1,4 @@
+import 'package:booking_app/models/driverrequest.dart';
 import 'package:booking_app/models/membership.dart';
 import 'package:booking_app/models/user.dart';
 import 'package:flutter/material.dart';
@@ -8,7 +9,6 @@ import 'pb_client.dart';
 
 class CustomerService extends ChangeNotifier {
   PocketBase get pb => pocketBase;
-  
 
   Future<bool> addDriverRequest({
     required String licensenumber,
@@ -38,6 +38,32 @@ class CustomerService extends ChangeNotifier {
     } catch (e) {
       // await pb.collection('users').update(user, body: {'role': 'customer'});
       debugPrint("Rollback role do lỗi: $e");
+      return false;
+    }
+  }
+
+  Future<DriverRequest?> fetchRequestByUserID(String userid) async {
+    try {
+      final request = await pb
+          .collection('driverrequests')
+          .getList(filter: 'user = "$userid"', expand: 'user');
+      if (request.items.isEmpty) return null;
+      return DriverRequest.fromRecord(request.items.first);
+    } on ClientException catch (e) {
+      logger.i(e.response);
+      return null;
+    }
+  }
+
+  Future<bool> retryDriverRequest(String id) async {
+    try {
+      final success = await pb
+          .collection('driverrequests')
+          .update(id, body: {'status': 'requested'});
+      if (success.data.isEmpty) return false;
+      return true;
+    } on ClientException catch (e) {
+      logger.i(e.response);
       return false;
     }
   }
