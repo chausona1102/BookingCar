@@ -24,6 +24,11 @@ class _UsersManagerPageState extends State<UsersManagerPage> {
   final TextEditingController _searchController = TextEditingController();
   bool _isSearching = false;
 
+  // Filter
+  bool showFilter = false;
+  bool sortName = false;
+  bool sortDate = false;
+
   @override
   void initState() {
     super.initState();
@@ -50,6 +55,11 @@ class _UsersManagerPageState extends State<UsersManagerPage> {
                     padding: EdgeInsets.all(8),
                     child: LinearProgressIndicator(),
                   ),
+                const SizedBox(height: 10),
+                _buildFilter(),
+                const SizedBox(height: 5),
+                _buildLength(users.length),
+                const SizedBox(height: 10),
                 Expanded(
                   child: users.isEmpty
                       ? const Center(child: Text('Không có người dùng'))
@@ -60,6 +70,17 @@ class _UsersManagerPageState extends State<UsersManagerPage> {
                               _buildRow(users[index]),
                         ),
                 ),
+                const SizedBox(height: 10),
+                TextButton(
+                  onPressed: () {
+                    userManager.fetchMoreUser();
+                  },
+                  child: Text(
+                    'Xem thêm',
+                    style: TextStyle(color: Colors.green),
+                  ),
+                ),
+                const SizedBox(height: 10),
               ],
             ),
     );
@@ -104,6 +125,16 @@ class _UsersManagerPageState extends State<UsersManagerPage> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildLength(int length) {
+    return Row(
+      children: [
+        const Spacer(),
+        Text('Số dòng $length'),
+        const SizedBox(width: 20),
+      ],
     );
   }
 
@@ -297,6 +328,70 @@ class _UsersManagerPageState extends State<UsersManagerPage> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildFilter() {
+    return Row(
+      children: [
+        const Spacer(),
+        if (showFilter) ...[
+          TextButton(
+            onPressed: () {
+              if (sortName) {
+                userManager.sortUserByName('asc');
+              } else {
+                userManager.sortUserByName('desc');
+              }
+              setState(() {
+                sortName = !sortName;
+              });
+            },
+            child: Row(
+              children: [
+                Text('Name'),
+                Icon(sortName ? Icons.expand_less : Icons.expand_more),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          TextButton(
+            onPressed: () {
+              if (sortDate) {
+                userManager.sortUserByDate('asc');
+              } else {
+                userManager.sortUserByDate('desc');
+              }
+              setState(() {
+                sortDate = !sortDate;
+              });
+            },
+            child: Row(
+              children: [
+                Text('Date'),
+                Icon(sortDate ? Icons.expand_less : Icons.expand_more),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+        ],
+        IconButton(
+          onPressed: () {
+            setState(() {
+              showFilter = !showFilter;
+            });
+          },
+          icon: Icon(Icons.filter_alt_outlined),
+          style: IconButton.styleFrom(
+            foregroundColor: Colors.black,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            side: BorderSide(color: Colors.black),
+          ),
+        ),
+        const SizedBox(width: 10),
+      ],
     );
   }
 }

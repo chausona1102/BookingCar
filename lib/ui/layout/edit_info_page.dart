@@ -87,7 +87,8 @@ class _EditInfoState extends State<EditInfoPage> {
       if (mounted) setState(() => _isLoading = false);
     }
   }
-    @override
+
+  @override
   void dispose() {
     _emailController.dispose();
     _firstnameController.dispose();
@@ -140,7 +141,9 @@ class _EditInfoState extends State<EditInfoPage> {
                         child: FloatingActionButton(
                           backgroundColor: Colors.white,
                           elevation: 6,
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
                           child: Icon(Icons.arrow_back, color: Colors.black45),
                         ),
                       ),

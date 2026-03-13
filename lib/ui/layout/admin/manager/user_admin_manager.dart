@@ -2,20 +2,27 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:booking_app/models/user.dart';
-import 'package:booking_app/services/admin/user_service.dart';
+import 'package:booking_app/services/admin/user_admin_service.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/web.dart';
 
 class UserAdminManager extends ChangeNotifier {
   final logger = Logger();
-  final UserService _userService = UserService();
+  final UserAdminService _userService = UserAdminService();
 
   Timer? _debounce;
 
   List<User> users = [];
-
   Future<void> fetchUserLimit() async {
     users = await _userService.fetchUserLimit();
+    notifyListeners();
+  }
+
+  Future<void> fetchMoreUser() async {
+    final more = await _userService.fetchMoreUser();
+    if (more.isNotEmpty) {
+      users.addAll(more);
+    }
     notifyListeners();
   }
 
@@ -72,6 +79,52 @@ class UserAdminManager extends ChangeNotifier {
       users = result ?? [];
       notifyListeners();
     });
+  }
+
+  void sortUserByName(String type) {
+    switch (type) {
+      case 'asc':
+        ascUserByName();
+        break;
+      case 'desc':
+        descUserByName();
+        break;
+      default:
+        ascUserByName();
+    }
+  }
+
+  void ascUserByName() {
+    users.sort((a, b) => a.fullName.compareTo(b.fullName));
+    notifyListeners();
+  }
+
+  void descUserByName() {
+    users.sort((a, b) => b.fullName.compareTo(a.fullName));
+    notifyListeners();
+  }
+
+  void sortUserByDate(String type) {
+    switch (type) {
+      case 'asc':
+        ascUserByDate();
+        break;
+      case 'desc':
+        descUserByDate();
+        break;
+      default:
+        ascUserByDate();
+    }
+  }
+
+  void ascUserByDate() {
+    users.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+    notifyListeners();
+  }
+
+  void descUserByDate() {
+    users.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    notifyListeners();
   }
 
   @override

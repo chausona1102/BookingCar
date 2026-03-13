@@ -98,7 +98,7 @@ class _AppRootState extends State<AppRoot> {
       redirect: (context, state) {
         final auth = context.read<AuthManager>();
         final loggedIn = auth.isLoggedIn;
-        final _role = auth.user?.role;
+        final role = auth.user?.role;
         final loggingIn = state.matchedLocation == '/login';
         final registering = state.matchedLocation == '/register';
         final splashing = state.matchedLocation == '/splash';
@@ -109,15 +109,15 @@ class _AppRootState extends State<AppRoot> {
           return '/login';
         }
         if (loggedIn && (loggingIn || registering)) {
-          if (_role == 'driver') return '/driver-page';
-          if (_role == 'admin') return '/admin-page';
+          if (role == 'driver') return '/driver-page';
+          if (role == 'admin') return '/admin-page';
           return '/';
         }
 
-        if (loggedIn && _role == 'driver' && state.matchedLocation == '/') {
+        if (loggedIn && role == 'driver' && state.matchedLocation == '/') {
           return '/driver-page';
         }
-        if (loggedIn && _role == 'admin' && state.matchedLocation == '/') {
+        if (loggedIn && role == 'admin' && state.matchedLocation == '/') {
           return '/admin-page';
         }
         return null;

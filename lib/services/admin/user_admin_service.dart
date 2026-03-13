@@ -9,16 +9,35 @@ import '../pb_client.dart';
 // ignore: depend_on_referenced_packages
 import 'package:http/http.dart' as http;
 
-class UserService {
+class UserAdminService {
   PocketBase get pb => pocketBase;
   final logger = Logger();
 
+  var page = 1;
   Future<List<User>> fetchUserLimit() async {
     logger.i('Fetching Users....');
+    page = 1;
     try {
       final records = await pb
           .collection('users')
-          .getList(page: 1, perPage: 20, filter: 'role != "admin"');
+          .getList(page: page, perPage: 20, filter: 'role != "admin"');
+      return records.items.map((r) {
+        final json = r.toJson();
+        json['id'] = r.id;
+        return User.fromJson(json);
+      }).toList();
+    } catch (e) {
+      logger.e(e);
+      return [];
+    }
+  }
+
+  Future<List<User>> fetchMoreUser() async {
+    page++;
+    try {
+      final records = await pb
+          .collection('users')
+          .getList(page: page, perPage: 20, filter: 'role != "admin"');
       return records.items.map((r) {
         final json = r.toJson();
         json['id'] = r.id;

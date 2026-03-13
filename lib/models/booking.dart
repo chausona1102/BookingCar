@@ -60,8 +60,10 @@ class BookingModel {
     final expandedDriver = r.expand['driver'] as List<RecordModel>?;
 
     final expandedPickUpLocation =
+        // ignore: unnecessary_cast
         r.expand['pickuplocation'] as List<RecordModel>?;
     final expandedDropOffLocation =
+        // ignore: unnecessary_cast
         r.expand['dropofflocation'] as List<RecordModel>?;
 
     if (expandedUser == null || expandedUser.isEmpty) {

@@ -1,3 +1,5 @@
+// import 'dart:ffi';
+
 import 'package:booking_app/models/booking.dart';
 import 'package:booking_app/ui/layout/admin/manager/booking_admin_manager.dart';
 import 'package:booking_app/ui/shared/buildRowInfo.dart';
@@ -21,6 +23,13 @@ class _BookingsManagerPageState extends State<BookingsManagerPage> {
   late final MyFunctions myFn;
   final TextEditingController _searchController = TextEditingController();
   bool _isSearching = false;
+
+  // Filter
+  bool showFilter = false;
+  bool sortPrice = false;
+  bool sortDate = false;
+  String _status = 'All';
+
   @override
   void initState() {
     super.initState();
@@ -44,10 +53,11 @@ class _BookingsManagerPageState extends State<BookingsManagerPage> {
   @override
   Widget build(BuildContext context) {
     final bookings = context.watch<BookingAdminManager>().bookings;
-    logger.i('Re-render');
+    logger.i('-------------');
     logger.i(bookings.length);
     return Scaffold(
       appBar: myAppBar(context, "Quản lý đơn hàng"),
+      backgroundColor: Colors.green.shade50,
       body: _isLoading
           ? Center(child: CircularProgressIndicator(color: Colors.green))
           : Column(
@@ -58,9 +68,22 @@ class _BookingsManagerPageState extends State<BookingsManagerPage> {
                     padding: EdgeInsets.all(8),
                     child: LinearProgressIndicator(),
                   ),
+                const SizedBox(height: 10),
+                _buildFilter(),
+                const SizedBox(height: 5),
+                _buildLength(bookings.length),
                 Expanded(
                   child: bookings.isEmpty
-                      ? const Center(child: Text('Không có người dùng'))
+                      ? const Center(
+                          child: Text(
+                            'Trống',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              color: Colors.black38,
+                              fontSize: 16,
+                            ),
+                          ),
+                        )
                       : ListView.builder(
                           padding: const EdgeInsets.all(12),
                           itemCount: bookings.length,
@@ -68,6 +91,17 @@ class _BookingsManagerPageState extends State<BookingsManagerPage> {
                               _buildRow(bookings[index]),
                         ),
                 ),
+                const SizedBox(height: 10),
+                TextButton(
+                  onPressed: () {
+                    bookingManager.fetchMoreLimit();
+                  },
+                  child: Text(
+                    'Xem thêm',
+                    style: TextStyle(color: Colors.green),
+                  ),
+                ),
+                const SizedBox(height: 10),
               ],
             ),
     );
@@ -217,6 +251,96 @@ class _BookingsManagerPageState extends State<BookingsManagerPage> {
           fontSize: 11,
         ),
       ),
+    );
+  }
+
+  Widget _buildLength(int length) {
+    return Row(
+      children: [
+        const Spacer(),
+        Text('Số dòng $length'),
+        const SizedBox(width: 20),
+      ],
+    );
+  }
+
+  Widget _buildFilter() {
+    return Row(
+      children: [
+        const Spacer(),
+        if (showFilter) ...[
+          TextButton(
+            onPressed: () {
+              if (sortPrice) {
+                bookingManager.sortBookingByPrice('asc');
+              } else {
+                bookingManager.sortBookingByPrice('desc');
+              }
+              setState(() {
+                sortPrice = !sortPrice;
+              });
+            },
+            child: Row(
+              children: [
+                Text('Price'),
+                Icon(sortPrice ? Icons.expand_less : Icons.expand_more),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          TextButton(
+            onPressed: () {
+              if (sortDate) {
+                bookingManager.sortBookingByDate('asc');
+              } else {
+                bookingManager.sortBookingByDate('desc');
+              }
+              setState(() {
+                sortDate = !sortDate;
+              });
+            },
+            child: Row(
+              children: [
+                Text('Date'),
+                Icon(sortDate ? Icons.expand_less : Icons.expand_more),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          DropdownMenu<String>(
+            initialSelection: _status,
+            onSelected: (value) {
+              setState(() => _status = value!);
+              bookingManager.filterByStatus(_status);
+            },
+            dropdownMenuEntries: [
+              'All',
+              'completed',
+              'pending',
+              'accepted',
+              'cancelled',
+              'ontrip',
+            ].map((e) => DropdownMenuEntry(value: e, label: e)).toList(),
+          ),
+          const SizedBox(width: 10),
+        ],
+        IconButton(
+          onPressed: () {
+            setState(() {
+              showFilter = !showFilter;
+            });
+          },
+          icon: Icon(Icons.filter_alt_outlined),
+          style: IconButton.styleFrom(
+            foregroundColor: Colors.black,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            side: BorderSide(color: Colors.black),
+          ),
+        ),
+        const SizedBox(width: 10),
+      ],
     );
   }
 
