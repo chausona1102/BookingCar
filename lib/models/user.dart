@@ -42,7 +42,7 @@ class User {
       phone: json['phone'],
       avatar: json['avatar'],
       isActive: json['isactive'] ?? true,
-      createdAt: DateTime.tryParse(json['created'] ?? '') ?? DateTime.now(),
+      createdAt: DateTime.tryParse(json['createat'] ?? '') ?? DateTime.now(),
     );
   }
 

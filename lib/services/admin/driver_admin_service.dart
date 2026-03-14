@@ -10,16 +10,32 @@ import 'package:http/http.dart' as http;
 class DriverAdminService {
   PocketBase get pb => pocketBase;
   final logger = Logger();
+  var page = 1;
   String driverImageUrl(Driver d) {
     return '${pocketBase.baseUrl}/api/files/drivers/${d.id}/${d.carimage}';
   }
 
   Future<List<Driver>?> fetchDriverLimit() async {
     logger.i('Fetching Drivers....');
+    page = 1;
     try {
       final records = await pb
           .collection('drivers')
-          .getList(page: 1, perPage: 20, expand: 'user');
+          .getList(page: page, perPage: 20, expand: 'user');
+      return records.items.map((r) => Driver.fromRecord(r)).toList();
+    } catch (e) {
+      logger.e(e);
+      return [];
+    }
+  }
+
+  Future<List<Driver>?> fetchMoreDriver() async {
+    logger.i('Fetching Drivers....');
+    page++;
+    try {
+      final records = await pb
+          .collection('drivers')
+          .getList(page: page, perPage: 20, expand: 'user');
       return records.items.map((r) => Driver.fromRecord(r)).toList();
     } catch (e) {
       logger.e(e);

@@ -88,40 +88,93 @@ class _UsersManagerPageState extends State<UsersManagerPage> {
 
   Widget _buildSearch() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-      child: TextField(
-        controller: _searchController,
-        onChanged: (value) async {
-          if (value.trim().isEmpty) {
-            await userManager.fetchUserLimit();
-            return;
-          }
-          setState(() => _isSearching = true);
-          await userManager.search(value.trim());
-          setState(() => _isSearching = false);
-        },
-        decoration: InputDecoration(
-          hintText: 'Tìm theo tên, username, email...',
-          prefixIcon: const Icon(Icons.search),
-          suffixIcon: _searchController.text.isNotEmpty
-              ? IconButton(
-                  icon: const Icon(Icons.clear),
-                  onPressed: () async {
-                    _searchController.clear();
-                    await userManager.fetchUserLimit();
-                    setState(() {});
-                  },
-                )
-              : null,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: _searchController.text.isNotEmpty
+                ? Colors.green.shade400
+                : Colors.grey.shade200,
+            width: 1.5,
           ),
-          filled: true,
-          fillColor: Colors.grey.shade100,
-          contentPadding: const EdgeInsets.symmetric(
-            vertical: 0,
-            horizontal: 16,
+          boxShadow: [
+            BoxShadow(
+              color: _searchController.text.isNotEmpty
+                  ? Colors.green.withOpacity(0.08)
+                  : Colors.black.withOpacity(0.04),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: TextField(
+          controller: _searchController,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Color(0xFF1A1A2E),
+          ),
+          onChanged: (value) async {
+            setState(() {});
+            if (value.trim().isEmpty) {
+              await userManager.fetchUserLimit();
+              return;
+            }
+            setState(() => _isSearching = true);
+            await userManager.search(value.trim());
+            setState(() => _isSearching = false);
+          },
+          decoration: InputDecoration(
+            hintText: 'Tìm theo tên, username, email...',
+            hintStyle: TextStyle(
+              fontSize: 14,
+              color: Colors.grey.shade400,
+              fontWeight: FontWeight.w400,
+            ),
+            prefixIcon: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 200),
+              child: Icon(
+                _searchController.text.isNotEmpty
+                    ? Icons.manage_search_rounded
+                    : Icons.search_rounded,
+                key: ValueKey(_searchController.text.isNotEmpty),
+                color: _searchController.text.isNotEmpty
+                    ? Colors.green.shade500
+                    : Colors.grey.shade400,
+                size: 22,
+              ),
+            ),
+            suffixIcon: _searchController.text.isNotEmpty
+                ? GestureDetector(
+                    onTap: () async {
+                      _searchController.clear();
+                      await userManager.fetchUserLimit();
+                      setState(() {});
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.close_rounded,
+                        color: Colors.grey.shade500,
+                        size: 16,
+                      ),
+                    ),
+                  )
+                : null,
+            border: InputBorder.none,
+            enabledBorder: InputBorder.none,
+            focusedBorder: InputBorder.none,
+            contentPadding: const EdgeInsets.symmetric(
+              vertical: 14,
+              horizontal: 4,
+            ),
           ),
         ),
       ),

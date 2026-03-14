@@ -10,11 +10,21 @@ class DriverAdminManager extends ChangeNotifier {
   final logger = Logger();
   Timer? _debounce;
   List<Driver> drivers = [];
+  List<Driver> _allDriver = [];
 
   final DriverAdminService _driverAdminService = DriverAdminService();
 
   Future<void> fetchDriverLimit() async {
-    drivers = (await _driverAdminService.fetchDriverLimit())!;
+    _allDriver = (await _driverAdminService.fetchDriverLimit())!;
+    drivers = _allDriver;
+    notifyListeners();
+  }
+
+  Future<void> fetchMoreDriver() async {
+    final more = (await _driverAdminService.fetchMoreDriver())!;
+    if (more.isNotEmpty) {
+      drivers.addAll(more);
+    }
     notifyListeners();
   }
 
@@ -51,6 +61,61 @@ class DriverAdminManager extends ChangeNotifier {
       drivers = result ?? [];
       notifyListeners();
     });
+  }
+
+  void filterByTypeCar(String type) {
+    if (type == 'All') {
+      drivers = _allDriver;
+    } else {
+      drivers = _allDriver.where((b) => b.typecar == type).toList();
+    }
+    notifyListeners();
+  }
+
+  void sortDriverByName(String type) {
+    switch (type) {
+      case 'asc':
+        ascDriverByName();
+        break;
+      case 'desc':
+        descDriverByName();
+        break;
+      default:
+        ascDriverByName();
+    }
+  }
+
+  void ascDriverByName() {
+    drivers.sort((a, b) => a.user.fullName.compareTo(b.user.fullName));
+    notifyListeners();
+  }
+
+  void descDriverByName() {
+    drivers.sort((a, b) => b.user.fullName.compareTo(a.user.fullName));
+    notifyListeners();
+  }
+
+  void sortDriverByDate(String type) {
+    switch (type) {
+      case 'asc':
+        ascDriverByDate();
+        break;
+      case 'desc':
+        descDriverByDate();
+        break;
+      default:
+        ascDriverByDate();
+    }
+  }
+
+  void ascDriverByDate() {
+    drivers.sort((a, b) => a.user.createdAt.compareTo(b.user.createdAt));
+    notifyListeners();
+  }
+
+  void descDriverByDate() {
+    drivers.sort((a, b) => b.user.createdAt.compareTo(a.user.createdAt));
+    notifyListeners();
   }
 
   @override
