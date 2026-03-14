@@ -12,16 +12,26 @@ class UserAdminManager extends ChangeNotifier {
 
   Timer? _debounce;
 
+  bool isMax = false;
+  int maxLength = 0;
+
   List<User> users = [];
+  List<User> _allUsers = [];
+
   Future<void> fetchUserLimit() async {
-    users = await _userService.fetchUserLimit();
+    _allUsers = await _userService.fetchUserLimit();
+    users = _allUsers;
     notifyListeners();
   }
 
   Future<void> fetchMoreUser() async {
     final more = await _userService.fetchMoreUser();
     if (more.isNotEmpty) {
-      users.addAll(more);
+      _allUsers.addAll(more);
+      users = _allUsers;
+    } else {
+      isMax = true;
+      maxLength = userLength;
     }
     notifyListeners();
   }
@@ -132,4 +142,8 @@ class UserAdminManager extends ChangeNotifier {
     _debounce?.cancel();
     super.dispose();
   }
+
+  int get userLength => _allUsers.length;
+  bool get isMaxLength => isMax;
+  int get getMaxLength => maxLength;
 }

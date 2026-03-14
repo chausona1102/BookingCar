@@ -71,7 +71,10 @@ class _BookingsManagerPageState extends State<BookingsManagerPage> {
                 const SizedBox(height: 10),
                 _buildFilter(),
                 const SizedBox(height: 5),
-                _buildLength(bookings.length),
+                _buildLength(
+                  bookingManager.bookingLength,
+                  bookingManager.isMax,
+                ),
                 Expanded(
                   child: bookings.isEmpty
                       ? const Center(
@@ -107,48 +110,6 @@ class _BookingsManagerPageState extends State<BookingsManagerPage> {
     );
   }
 
-  // Widget _buildSearch() {
-  //   return Padding(
-  //     padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-  //     child: TextField(
-  //       controller: _searchController,
-  //       onChanged: (value) async {
-  //         if (value.trim().isEmpty) {
-  //           await bookingManager.fetchBookingLimit();
-  //           return;
-  //         }
-  //         setState(() => _isSearching = true);
-  //         await bookingManager.search(value.trim());
-  //         setState(() => _isSearching = false);
-  //       },
-  //       decoration: InputDecoration(
-  //         hintText: 'Tìm theo tên, username, email...',
-  //         prefixIcon: const Icon(Icons.search),
-  //         suffixIcon: _searchController.text.isNotEmpty
-  //             ? IconButton(
-  //                 icon: const Icon(Icons.clear),
-  //                 onPressed: () async {
-  //                   _searchController.clear();
-  //                   await bookingManager.fetchBookingLimit();
-  //                   setState(() {});
-  //                 },
-  //               )
-  //             : null,
-  //         border: OutlineInputBorder(
-  //           borderRadius: BorderRadius.circular(12),
-  //           borderSide: BorderSide.none,
-  //         ),
-  //         filled: true,
-  //         fillColor: Colors.transparent,
-  //         contentPadding: const EdgeInsets.symmetric(
-  //           vertical: 0,
-  //           horizontal: 16,
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
-
   Widget _buildSearch() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
@@ -181,7 +142,9 @@ class _BookingsManagerPageState extends State<BookingsManagerPage> {
             color: Color(0xFF1A1A2E),
           ),
           onChanged: (value) async {
-            setState(() {});
+            setState(() {
+              showFilter = false;
+            });
             if (value.trim().isEmpty) {
               await bookingManager.fetchBookingLimit();
               return;
@@ -349,11 +312,15 @@ class _BookingsManagerPageState extends State<BookingsManagerPage> {
     );
   }
 
-  Widget _buildLength(int length) {
+  Widget _buildLength(int length, bool isMax) {
     return Row(
       children: [
         const Spacer(),
-        Text('Số dòng $length'),
+        if (isMax) ...[
+          Text('Số dòng $length/${bookingManager.getMaxLength} (max)'),
+        ] else ...[
+          Text('Số dòng $length'),
+        ],
         const SizedBox(width: 20),
       ],
     );

@@ -8,14 +8,30 @@ import 'package:http/http.dart' as http;
 class DriverRequestAdminService {
   PocketBase get pb => pocketBase;
   final logger = Logger();
+  var page = 1;
   // String carImage(Driver d) {
 
   // }
   Future<List<DriverRequest>?> fetchRequestLimit() async {
+    page = 1;
     try {
       final records = await pb
           .collection('driverrequests')
-          .getList(page: 1, perPage: 20, expand: 'user', sort: 'status');
+          .getList(page: page, perPage: 20, expand: 'user', sort: 'status');
+      return records.items.map((r) => DriverRequest.fromRecord(r)).toList();
+    } on ClientException catch (e) {
+      final data = e.response;
+      logger.i(data['message']);
+      return [];
+    }
+  }
+
+    Future<List<DriverRequest>?> fetchMoreRequest() async {
+    page++;
+    try {
+      final records = await pb
+          .collection('driverrequests')
+          .getList(page: page, perPage: 20, expand: 'user', sort: 'status');
       return records.items.map((r) => DriverRequest.fromRecord(r)).toList();
     } on ClientException catch (e) {
       final data = e.response;

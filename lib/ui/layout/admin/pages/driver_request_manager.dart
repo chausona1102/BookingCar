@@ -1,6 +1,6 @@
 import 'package:booking_app/models/driverrequest.dart';
 import 'package:booking_app/ui/layout/admin/manager/driver_request_admin_manager.dart';
-import 'package:booking_app/ui/layout/admin/manager/user_admin_manager.dart';
+// import 'package:booking_app/ui/layout/admin/manager/user_admin_manager.dart';
 import 'package:booking_app/ui/shared/buildRowInfo.dart';
 import 'package:booking_app/ui/shared/buttonPro.dart';
 import 'package:booking_app/ui/shared/myAppBar.dart';
@@ -20,11 +20,17 @@ class DriverRequestManagerPage extends StatefulWidget {
 class _DriverRequestManagerPageState extends State<DriverRequestManagerPage> {
   final logger = Logger();
   late final DriverRequestAdminManager requestManager;
-  late final UserAdminManager userManager;
+  // late final UserAdminManager userManager;
   bool _isLoading = true;
 
   final TextEditingController _searchController = TextEditingController();
   bool _isSearching = false;
+
+  // Filter
+  bool showFilter = false;
+  bool sortName = false;
+  bool sortDate = false;
+  var _status = "All";
 
   @override
   void initState() {
@@ -32,7 +38,7 @@ class _DriverRequestManagerPageState extends State<DriverRequestManagerPage> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       requestManager = context.read<DriverRequestAdminManager>();
-      userManager = context.read<UserAdminManager>();
+      // userManager = context.read<UserAdminManager>();
       await requestManager.fetchRequestLimit();
       setState(() => _isLoading = false);
     });
@@ -60,6 +66,11 @@ class _DriverRequestManagerPageState extends State<DriverRequestManagerPage> {
                     padding: EdgeInsets.all(8),
                     child: LinearProgressIndicator(),
                   ),
+                const SizedBox(height: 10),
+                _buildFilter(),
+                const SizedBox(height: 5),
+                _buildLength(requests.length, requestManager.isMaxLength),
+                const SizedBox(height: 10),
                 Expanded(
                   child: requests.isEmpty
                       ? const Center(child: Text('Không có người dùng'))
@@ -70,6 +81,17 @@ class _DriverRequestManagerPageState extends State<DriverRequestManagerPage> {
                               _buildRow(requests[index]),
                         ),
                 ),
+                const SizedBox(height: 10),
+                TextButton(
+                  onPressed: () {
+                    requestManager.fetchMoreRequest();
+                  },
+                  child: Text(
+                    'Xem thêm',
+                    style: TextStyle(color: Colors.green),
+                  ),
+                ),
+                const SizedBox(height: 10),
               ],
             ),
     );
@@ -107,7 +129,9 @@ class _DriverRequestManagerPageState extends State<DriverRequestManagerPage> {
             color: Color(0xFF1A1A2E),
           ),
           onChanged: (value) async {
-            setState(() {});
+            setState(() {
+              showFilter = false;
+            });
             if (value.trim().isEmpty) {
               await requestManager.fetchRequestLimit();
               return;
@@ -407,6 +431,115 @@ class _DriverRequestManagerPageState extends State<DriverRequestManagerPage> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildFilter() {
+    return Row(
+      children: [
+        const Spacer(),
+        if (showFilter) ...[
+          TextButton(
+            onPressed: () {
+              if (sortName) {
+                // driverManager.sortDriverByName('asc');
+                requestManager.sortRequestByName('asc');
+              } else {
+                requestManager.sortRequestByName('desc');
+              }
+              setState(() {
+                sortName = !sortName;
+              });
+            },
+            child: Row(
+              children: [
+                Text('Name'),
+                Icon(sortName ? Icons.expand_less : Icons.expand_more),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          TextButton(
+            onPressed: () {
+              if (sortDate) {
+                requestManager.sortRequestByDate('asc');
+              } else {
+                requestManager.sortRequestByDate('desc');
+              }
+              setState(() {
+                sortDate = !sortDate;
+              });
+            },
+            child: Row(
+              children: [
+                Text('Date'),
+                Icon(sortDate ? Icons.expand_less : Icons.expand_more),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          SizedBox(
+            height: 40,
+            child: DropdownMenu<String>(
+              initialSelection: _status,
+              menuHeight: 150,
+              inputDecorationTheme: InputDecorationTheme(
+                isDense: true,
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 0,
+                ),
+                constraints: BoxConstraints(maxHeight: 40),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              onSelected: (value) {
+                setState(() => _status = value!);
+                requestManager.filterByStatus(_status);
+                // driverManager.filterByStatus(_status);
+              },
+              dropdownMenuEntries: [
+                'All',
+                'Chờ duyệt',
+                'Từ chối',
+                'Đã duyệt',
+              ].map((e) => DropdownMenuEntry(value: e, label: e)).toList(),
+            ),
+          ),
+          const SizedBox(width: 10),
+        ],
+        IconButton(
+          onPressed: () {
+            setState(() {
+              showFilter = !showFilter;
+            });
+          },
+          icon: Icon(Icons.filter_alt_outlined),
+          style: IconButton.styleFrom(
+            foregroundColor: Colors.black,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            side: BorderSide(color: Colors.black),
+          ),
+        ),
+        const SizedBox(width: 10),
+      ],
+    );
+  }
+
+  Widget _buildLength(int length, bool isMax) {
+    return Row(
+      children: [
+        const Spacer(),
+        if (isMax) ...[
+          Text('Số dòng $length/${requestManager.getMaxLength} (max)'),
+        ] else ...[
+          Text('Số dòng $length'),
+        ],
+        const SizedBox(width: 20),
+      ],
     );
   }
 }

@@ -12,6 +12,9 @@ class DriverAdminManager extends ChangeNotifier {
   List<Driver> drivers = [];
   List<Driver> _allDriver = [];
 
+  bool isMax = false;
+  int maxLength = 0;
+
   final DriverAdminService _driverAdminService = DriverAdminService();
 
   Future<void> fetchDriverLimit() async {
@@ -24,6 +27,9 @@ class DriverAdminManager extends ChangeNotifier {
     final more = (await _driverAdminService.fetchMoreDriver())!;
     if (more.isNotEmpty) {
       drivers.addAll(more);
+    } else {
+      isMax = true;
+      maxLength = driverLength;
     }
     notifyListeners();
   }
@@ -117,6 +123,10 @@ class DriverAdminManager extends ChangeNotifier {
     drivers.sort((a, b) => b.user.createdAt.compareTo(a.user.createdAt));
     notifyListeners();
   }
+
+  int get driverLength => _allDriver.length;
+  bool get isMaxLength => isMax;
+  int get getMaxLength => maxLength;
 
   @override
   void dispose() {

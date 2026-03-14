@@ -58,7 +58,7 @@ class _UsersManagerPageState extends State<UsersManagerPage> {
                 const SizedBox(height: 10),
                 _buildFilter(),
                 const SizedBox(height: 5),
-                _buildLength(users.length),
+                _buildLength(users.length, userManager.isMaxLength),
                 const SizedBox(height: 10),
                 Expanded(
                   child: users.isEmpty
@@ -118,7 +118,9 @@ class _UsersManagerPageState extends State<UsersManagerPage> {
             color: Color(0xFF1A1A2E),
           ),
           onChanged: (value) async {
-            setState(() {});
+            setState(() {
+              showFilter = false;
+            });
             if (value.trim().isEmpty) {
               await userManager.fetchUserLimit();
               return;
@@ -181,11 +183,15 @@ class _UsersManagerPageState extends State<UsersManagerPage> {
     );
   }
 
-  Widget _buildLength(int length) {
+  Widget _buildLength(int length, bool isMax) {
     return Row(
       children: [
         const Spacer(),
-        Text('Số dòng $length'),
+        if (isMax) ...[
+          Text('Số dòng $length/${userManager.getMaxLength} (max)'),
+        ] else ...[
+          Text('Số dòng $length'),
+        ],
         const SizedBox(width: 20),
       ],
     );

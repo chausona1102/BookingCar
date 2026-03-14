@@ -64,7 +64,7 @@ class _DriversManagerPageState extends State<DriversManagerPage> {
                 const SizedBox(height: 10),
                 _buildFilter(),
                 const SizedBox(height: 5),
-                _buildLength(drivers.length),
+                _buildLength(drivers.length, driverManager.isMaxLength),
                 const SizedBox(height: 10),
                 Expanded(
                   child: drivers.isEmpty
@@ -124,7 +124,9 @@ class _DriversManagerPageState extends State<DriversManagerPage> {
             color: Color(0xFF1A1A2E),
           ),
           onChanged: (value) async {
-            setState(() {});
+            setState(() {
+              showFilter = false;
+            });
             if (value.trim().isEmpty) {
               await driverManager.fetchDriverLimit();
               return;
@@ -279,11 +281,15 @@ class _DriversManagerPageState extends State<DriversManagerPage> {
     );
   }
 
-  Widget _buildLength(int length) {
+  Widget _buildLength(int length, bool isMax) {
     return Row(
       children: [
         const Spacer(),
-        Text('Số dòng $length'),
+        if (isMax) ...[
+          Text('Số dòng $length/${driverManager.getMaxLength} (max)'),
+        ] else ...[
+          Text('Số dòng $length'),
+        ],
         const SizedBox(width: 20),
       ],
     );

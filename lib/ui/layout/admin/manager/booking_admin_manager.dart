@@ -10,7 +10,8 @@ class BookingAdminManager extends ChangeNotifier {
   final BookingAdminService _bookingAdminService = BookingAdminService();
   List<BookingModel> _allBookings = [];
   List<BookingModel> bookings = [];
-  List<BookingModel> bookingMore = [];
+  bool isMax = false;
+  int maxLength = 0;
 
   Timer? _debounce;
   Future<void> fetchBookingLimit() async {
@@ -20,9 +21,13 @@ class BookingAdminManager extends ChangeNotifier {
   }
 
   Future<void> fetchMoreLimit() async {
-    bookingMore = (await _bookingAdminService.fetchMoreBooking())!;
+    final bookingMore = (await _bookingAdminService.fetchMoreBooking())!;
     if (bookingMore.isNotEmpty) {
-      bookings.addAll(bookingMore);
+      _allBookings.addAll(bookingMore);
+      bookings = _allBookings;
+    } else {
+      isMax = true;
+      maxLength = bookingLength;
     }
     notifyListeners();
   }
@@ -92,6 +97,9 @@ class BookingAdminManager extends ChangeNotifier {
     });
   }
 
+  int get bookingLength => _allBookings.length;
+  bool get isMaxLength => isMax;
+  int get getMaxLength => maxLength;
   @override
   void dispose() {
     // TODO: implement dispose
