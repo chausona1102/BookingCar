@@ -3,6 +3,7 @@ import 'package:booking_app/ui/layout/admin/pages/chart_widget.dart';
 import 'package:booking_app/ui/shared/myAppBar.dart';
 import 'package:booking_app/utils/myFunction.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:logger/web.dart';
 import 'package:provider/provider.dart';
 
@@ -40,7 +41,7 @@ class _StatisticalPageState extends State<StatisticalPage> {
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: myAppBar(context, 'Thống kê'),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Colors.green))
+          ? const Center(child: SpinKitCircle(color: Colors.green))
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -479,8 +480,16 @@ class _StatisticalPageState extends State<StatisticalPage> {
   Widget _buildVehicleType() {
     final types = statisticalManager.bookingsByType;
     final total = types.values.fold(0, (a, b) => a + b);
-    final colors = {'car': Colors.blue, 'motobike': Colors.orange};
-    final labels = {'car': '🚗 Ô tô', 'motobike': '🏍 Xe máy'};
+    final colors = {
+      'car': Colors.blue,
+      'motobike': Colors.orange,
+      'driver': Colors.green,
+    };
+    final labels = {
+      'car': '🚗 Ô tô',
+      'motobike': '🏍 Xe máy',
+      'driver': '👮 Tài xế',
+    };
 
     return Container(
       decoration: BoxDecoration(

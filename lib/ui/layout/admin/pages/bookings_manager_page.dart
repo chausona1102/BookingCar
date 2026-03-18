@@ -7,6 +7,7 @@ import 'package:booking_app/ui/shared/myAppBar.dart';
 import 'package:booking_app/ui/shared/statusChip.dart';
 import 'package:booking_app/utils/myFunction.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:logger/web.dart';
 import 'package:provider/provider.dart';
 
@@ -60,7 +61,7 @@ class _BookingsManagerPageState extends State<BookingsManagerPage> {
       appBar: myAppBar(context, "Quản lý đơn hàng"),
       backgroundColor: Colors.green.shade50,
       body: _isLoading
-          ? Center(child: CircularProgressIndicator(color: Colors.green))
+          ? Center(child: SpinKitCircle(color: Colors.green))
           : Column(
               children: [
                 _buildSearch(),

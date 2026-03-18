@@ -23,9 +23,10 @@ class CustomerManager extends ChangeNotifier {
     );
   }
 
-  Future<DriverRequest> fetchRequestByUserID(String userId) async {
-    return (await _customerService.fetchRequestByUserID(userId))!;
+  Future<DriverRequest?> fetchRequestByUserID(String userId) async {
+    return await _customerService.fetchRequestByUserID(userId);
   }
+
   Future<bool> retryDriverRequest(String id) async {
     return _customerService.retryDriverRequest(id);
   }

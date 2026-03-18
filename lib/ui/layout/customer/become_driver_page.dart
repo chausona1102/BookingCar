@@ -13,7 +13,7 @@ import 'package:provider/provider.dart';
 import '../../auth/auth_manager.dart';
 import '../../auth/customer_manager.dart';
 
-enum TypeCar { car, motorbike }
+enum TypeCar { car, motobike }
 
 class BecomeDriverPage extends StatefulWidget {
   const BecomeDriverPage({super.key});
@@ -209,7 +209,7 @@ class _BecomeDriverPage extends State<BecomeDriverPage> {
                   items: const [
                     DropdownMenuItem(value: TypeCar.car, child: Text('Ô tô')),
                     DropdownMenuItem(
-                      value: TypeCar.motorbike,
+                      value: TypeCar.motobike,
                       child: Text('Xe máy'),
                     ),
                   ],

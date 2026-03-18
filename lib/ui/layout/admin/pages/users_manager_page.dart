@@ -6,6 +6,7 @@ import 'package:booking_app/ui/shared/buttonPro.dart';
 import 'package:booking_app/ui/shared/myAppBar.dart';
 import 'package:booking_app/ui/shared/snackBarLogger.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
 import 'package:logger/logger.dart';
 
@@ -46,7 +47,7 @@ class _UsersManagerPageState extends State<UsersManagerPage> {
       appBar: myAppBar(context, 'Quản lý người dùng'),
       backgroundColor: Colors.green.shade50,
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: SpinKitCircle(color: Colors.green))
           : Column(
               children: [
                 _buildSearch(),

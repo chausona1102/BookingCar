@@ -61,6 +61,12 @@ class _EditInfoState extends State<EditInfoPage> {
     final phone = _phoneController.text.trim();
     final firstname = _firstnameController.text.trim();
     final lastname = _lastnameController.text.trim();
+    if (lastname.isEmpty || phone.isEmpty || firstname.isEmpty) {
+      snackBarLogger(context, 'Không được bỏ trống', 'error');
+      _isLoading = false;
+      return false;
+    }
+
     logger.i('Request Editing');
     try {
       final success = await authManager.update(
@@ -122,7 +128,9 @@ class _EditInfoState extends State<EditInfoPage> {
     } else {
       return Scaffold(
         backgroundColor: Colors.green.shade50,
-        appBar: isLandscape ? null : myAppBar(context, 'Sửa thông tin cá nhân'),
+        appBar: isLandscape
+            ? null
+            : myAppBar(context, 'Chỉnh sửa thông tin cá nhân'),
         body: SingleChildScrollView(
           child: Center(
             child: Padding(

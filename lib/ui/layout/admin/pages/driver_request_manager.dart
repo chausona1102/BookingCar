@@ -5,6 +5,7 @@ import 'package:booking_app/ui/shared/buttonPro.dart';
 import 'package:booking_app/ui/shared/myAppBar.dart';
 import 'package:booking_app/ui/shared/snackBarLogger.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 
@@ -54,7 +55,7 @@ class _DriverRequestManagerPageState extends State<DriverRequestManagerPage> {
       appBar: myAppBar(context, 'Đơn đăng ký làm tài xế'),
       backgroundColor: Colors.green.shade50,
       body: _isLoading
-          ? const CircularProgressIndicator(color: Colors.green)
+          ? const Center(child: SpinKitCircle(color: Colors.green))
           : Column(
               children: [
                 _buildSearch(),
