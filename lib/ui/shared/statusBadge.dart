@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-Widget StatusBadge(String status) {
+Widget StatusBadge(String status, double size) {
   Color bgColor;
 
   switch (status) {
@@ -32,7 +32,7 @@ Widget StatusBadge(String status) {
     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
     decoration: BoxDecoration(
       color: bgColor.withOpacity(0.15),
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(size),
     ),
     child: Text(
       status,

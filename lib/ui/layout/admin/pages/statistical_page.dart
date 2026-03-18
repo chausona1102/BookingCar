@@ -19,6 +19,7 @@ class _StatisticalPageState extends State<StatisticalPage> {
   bool _isLoading = true;
   int _selectedMonth = DateTime.now().month;
   int _selectedYear = DateTime.now().year;
+  int yearNow = DateTime.now().year;
   late final MyFunctions myFns;
 
   @override
@@ -49,7 +50,7 @@ class _StatisticalPageState extends State<StatisticalPage> {
                   const SizedBox(height: 20),
                   _buildMonthlyAnalysis(),
                   const SizedBox(height: 20),
-                  RevenueLineChart(year: _selectedYear),
+                  RevenueLineChart(year: yearNow),
                   const SizedBox(height: 20),
                   _buildStatusBreakdown(),
                   const SizedBox(height: 20),
@@ -305,7 +306,7 @@ class _StatisticalPageState extends State<StatisticalPage> {
               value: _selectedYear,
               isDense: true,
               style: const TextStyle(fontSize: 13, color: Colors.black87),
-              items: [2024, 2025, 2026]
+              items: [yearNow - 3, yearNow - 2, yearNow - 1, yearNow]
                   .map((y) => DropdownMenuItem(value: y, child: Text('$y')))
                   .toList(),
               onChanged: (v) => setState(() => _selectedYear = v!),

@@ -1,6 +1,5 @@
 import 'package:booking_app/models/driverrequest.dart';
 import 'package:booking_app/ui/layout/admin/manager/driver_request_admin_manager.dart';
-// import 'package:booking_app/ui/layout/admin/manager/user_admin_manager.dart';
 import 'package:booking_app/ui/shared/buildRowInfo.dart';
 import 'package:booking_app/ui/shared/buttonPro.dart';
 import 'package:booking_app/ui/shared/myAppBar.dart';
@@ -20,7 +19,6 @@ class DriverRequestManagerPage extends StatefulWidget {
 class _DriverRequestManagerPageState extends State<DriverRequestManagerPage> {
   final logger = Logger();
   late final DriverRequestAdminManager requestManager;
-  // late final UserAdminManager userManager;
   bool _isLoading = true;
 
   final TextEditingController _searchController = TextEditingController();
@@ -38,7 +36,6 @@ class _DriverRequestManagerPageState extends State<DriverRequestManagerPage> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       requestManager = context.read<DriverRequestAdminManager>();
-      // userManager = context.read<UserAdminManager>();
       await requestManager.fetchRequestLimit();
       setState(() => _isLoading = false);
     });
@@ -435,6 +432,8 @@ class _DriverRequestManagerPageState extends State<DriverRequestManagerPage> {
   }
 
   Widget _buildFilter() {
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
     return Row(
       children: [
         const Spacer(),
@@ -479,6 +478,7 @@ class _DriverRequestManagerPageState extends State<DriverRequestManagerPage> {
           ),
           const SizedBox(width: 10),
           SizedBox(
+            width: isLandscape ? 200 : MediaQuery.of(context).size.width * 0.3,
             height: 40,
             child: DropdownMenu<String>(
               initialSelection: _status,

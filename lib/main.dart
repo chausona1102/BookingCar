@@ -20,7 +20,7 @@ import 'package:booking_app/ui/layout/driver/bookings_request_page.dart';
 import 'package:booking_app/ui/layout/driver/driver_list_page.dart';
 import 'package:booking_app/ui/layout/driver/driver_manager.dart';
 import 'package:booking_app/ui/layout/customer/booking_page.dart';
-import 'package:booking_app/ui/layout/customer/history_page.dart';
+import 'package:booking_app/ui/layout/history_page.dart';
 import 'package:booking_app/ui/layout/customer/payment_page.dart';
 import 'package:booking_app/ui/layout/driver/driver_page.dart';
 import 'package:booking_app/ui/auth/customer_manager.dart';

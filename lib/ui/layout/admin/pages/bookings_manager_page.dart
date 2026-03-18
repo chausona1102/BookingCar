@@ -4,6 +4,7 @@ import 'package:booking_app/models/booking.dart';
 import 'package:booking_app/ui/layout/admin/manager/booking_admin_manager.dart';
 import 'package:booking_app/ui/shared/buildRowInfo.dart';
 import 'package:booking_app/ui/shared/myAppBar.dart';
+import 'package:booking_app/ui/shared/statusChip.dart';
 import 'package:booking_app/utils/myFunction.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/web.dart';
@@ -221,7 +222,7 @@ class _BookingsManagerPageState extends State<BookingsManagerPage> {
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
-            _statusChip(booking.status),
+            statusChip(booking.status),
           ],
         ),
         subtitle: Column(
@@ -274,39 +275,11 @@ class _BookingsManagerPageState extends State<BookingsManagerPage> {
           ],
         ),
         trailing: Text(
-          myFn.convertToVND(booking.price.toString()) + 'đ',
+          myFn.convertToVND(booking.price.toInt().toString()) + 'đ',
           style: const TextStyle(
             fontWeight: FontWeight.bold,
             color: Colors.green,
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _statusChip(String status) {
-    final Map<String, (String, Color)> statusMap = {
-      'pending': ('Chờ xác nhận', Colors.orange),
-      'accepted': ('Đã xác nhận', Colors.blue),
-      'ontrip': ('Đang trong chuyến', const Color.fromARGB(255, 33, 243, 243)),
-      'completed': ('Hoàn thành', Colors.green),
-      'cancelled': ('Đã huỷ', Colors.red),
-    };
-
-    final (label, color) = statusMap[status] ?? (status, Colors.grey);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: color,
-          fontWeight: FontWeight.w600,
-          fontSize: 11,
         ),
       ),
     );
@@ -327,6 +300,8 @@ class _BookingsManagerPageState extends State<BookingsManagerPage> {
   }
 
   Widget _buildFilter() {
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
     return Row(
       children: [
         const Spacer(),
@@ -370,6 +345,7 @@ class _BookingsManagerPageState extends State<BookingsManagerPage> {
           ),
           const SizedBox(width: 10),
           SizedBox(
+            width: isLandscape ? 200 : MediaQuery.of(context).size.width * 0.3,
             height: 40,
             child: DropdownMenu<String>(
               initialSelection: _status,
@@ -476,7 +452,7 @@ class _BookingsManagerPageState extends State<BookingsManagerPage> {
             const SizedBox(height: 10),
             buildRowInfo(
               'Tổng tiền: ',
-              '${myFn.convertToVND(booking.price.toString())}đ',
+              '${myFn.convertToVND(booking.price.toInt().toString())}đ',
             ),
             const SizedBox(height: 30),
           ],

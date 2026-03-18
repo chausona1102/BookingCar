@@ -91,8 +91,8 @@ class BookingManager extends ChangeNotifier {
         total += (distance - 1) * 12000;
         break;
       case 'driver':
-        total += 15000;
-        total += (distance - 1) * 10000;
+        total += 30000;
+        total += (distance - 1) * 16000;
         break;
     }
     logger.i(disCount);

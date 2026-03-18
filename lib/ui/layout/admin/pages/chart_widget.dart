@@ -15,6 +15,8 @@ class RevenueLineChart extends StatefulWidget {
 class _RevenueLineChartState extends State<RevenueLineChart> {
   late List<FlSpot> spots;
   double maxY = 0;
+  int _selectedYear = DateTime.now().year;
+  int yearNow = DateTime.now().year;
 
   @override
   void didChangeDependencies() {
@@ -22,14 +24,26 @@ class _RevenueLineChartState extends State<RevenueLineChart> {
     _buildSpots();
   }
 
+  // void _buildSpots() {
+  //   final m = context.read<StatisticalManager>();
+  //   spots = List.generate(12, (i) {
+  //     final month = i + 1;
+  //     final total =
+  //         m.revenueAnalysisByMonth(month, year: widget.year)['total'] ?? 0;
+  //     if (total > maxY) maxY = total;
+  //     return FlSpot(month.toDouble(), total);
+  //   });
+  //   if (maxY == 0) maxY = 100000;
+  // }
   void _buildSpots() {
     final m = context.read<StatisticalManager>();
+    maxY = 0;
     spots = List.generate(12, (i) {
       final month = i + 1;
       final total =
-          m.revenueAnalysisByMonth(month, year: widget.year)['total'] ?? 0;
-      if (total > maxY) maxY = total;
-      return FlSpot(month.toDouble(), total);
+          m.revenueAnalysisByMonth(month, year: _selectedYear)['total'] ?? 0;
+      if (total > maxY) maxY = total.toDouble();
+      return FlSpot(month.toDouble(), total.toDouble());
     });
     if (maxY == 0) maxY = 100000;
   }
@@ -55,9 +69,18 @@ class _RevenueLineChartState extends State<RevenueLineChart> {
         children: [
           Padding(
             padding: const EdgeInsets.only(left: 8),
-            child: Text(
-              'Doanh thu ${widget.year}',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            child: Row(
+              children: [
+                Text(
+                  'Doanh thu $_selectedYear',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const Spacer(),
+                _buildYearPicker(),
+              ],
             ),
           ),
           const SizedBox(height: 20),
@@ -162,6 +185,36 @@ class _RevenueLineChartState extends State<RevenueLineChart> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildYearPicker() {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          height: 32,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.green.shade200),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<int>(
+              value: _selectedYear,
+              isDense: true,
+              style: const TextStyle(fontSize: 13, color: Colors.black87),
+              items: [yearNow - 3, yearNow - 2, yearNow - 1, yearNow]
+                  .map((y) => DropdownMenuItem(value: y, child: Text('$y')))
+                  .toList(),
+              onChanged: (v) => setState(() {
+                _selectedYear = v!;
+                _buildSpots();
+              }),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

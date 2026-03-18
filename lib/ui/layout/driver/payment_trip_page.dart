@@ -152,8 +152,10 @@ class _PaymentState extends State<PaymentTripPage> {
                     children: [
                       Text(
                         payment.note,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: 15,
                           fontWeight: FontWeight.w700,
                           color: Colors.black45,
                         ),

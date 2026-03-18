@@ -1,6 +1,5 @@
 import 'package:booking_app/models/driver.dart';
 import 'package:booking_app/ui/layout/admin/manager/driver_admin_manager.dart';
-import 'package:booking_app/ui/layout/admin/manager/user_admin_manager.dart';
 import 'package:booking_app/ui/layout/admin/pages/changeinfodriveroverley.dart';
 import 'package:booking_app/ui/shared/buildRowInfo.dart';
 import 'package:booking_app/ui/shared/buttonPro.dart';
@@ -21,12 +20,10 @@ class _DriversManagerPageState extends State<DriversManagerPage> {
   final logger = Logger();
   bool _isLoading = true;
   late final DriverAdminManager driverManager;
-  late final UserAdminManager userManager;
 
   final TextEditingController _searchController = TextEditingController();
   bool _isSearching = false;
 
-  // Filter
   // Filter
   bool showFilter = false;
   bool sortName = false;
@@ -38,7 +35,6 @@ class _DriversManagerPageState extends State<DriversManagerPage> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       driverManager = context.read<DriverAdminManager>();
-      userManager = context.read<UserAdminManager>();
       await driverManager.fetchDriverLimit();
       setState(() => _isLoading = false);
     });
@@ -190,6 +186,8 @@ class _DriversManagerPageState extends State<DriversManagerPage> {
   }
 
   Widget _buildFilter() {
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
     return Row(
       children: [
         const Spacer(),
@@ -233,6 +231,7 @@ class _DriversManagerPageState extends State<DriversManagerPage> {
           ),
           const SizedBox(width: 10),
           SizedBox(
+            width: isLandscape ? 200 : MediaQuery.of(context).size.width * 0.3,
             height: 40,
             child: DropdownMenu<String>(
               initialSelection: _type,

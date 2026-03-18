@@ -20,7 +20,7 @@ class StatisticalManager extends ChangeNotifier {
       .where((b) => b.status == 'completed')
       .fold(0, (sum, b) => sum + b.price);
 
-  /// Doanh thu theo ngày  { '2026-02-09': 28305.0, ... }
+  /// Doanh thu theo ngày
   Map<String, double> get revenueByDate {
     final Map<String, double> map = {};
     for (final b in bookings.where((b) => b.status == 'completed')) {
@@ -30,7 +30,7 @@ class StatisticalManager extends ChangeNotifier {
     return map;
   }
 
-  /// Doanh thu theo tháng  { '2026-02': 28305.0, ... }
+  /// Doanh thu theo tháng
   Map<String, double> get revenueByMonth {
     final Map<String, double> map = {};
     for (final b in bookings.where((b) => b.status == 'completed')) {

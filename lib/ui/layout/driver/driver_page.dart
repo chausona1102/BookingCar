@@ -194,7 +194,7 @@ class _DriverPage extends State<DriverPage> {
       ),
       ActionItem(
         image: 'assets/images/car_driving_removebg.png',
-        label: 'Đang vận',
+        label: 'Theo dõi',
         subtitle: 'Chuyến hiện tại',
         color: const Color(0xFF00C853),
         onTap: () => context.push('/driver-trip'),
