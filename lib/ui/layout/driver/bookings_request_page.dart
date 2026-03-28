@@ -1,3 +1,4 @@
+import 'package:booking_app/models/driver.dart';
 import 'package:booking_app/models/location.dart';
 import 'package:booking_app/ui/auth/auth_manager.dart';
 import 'package:booking_app/ui/layout/customer/booking_manager.dart';
@@ -10,6 +11,7 @@ import 'package:booking_app/ui/shared/snackBarLogger.dart';
 import 'package:booking_app/utils/myFunction.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 
 class BookingsRequestPage extends StatefulWidget {
@@ -22,7 +24,8 @@ class BookingsRequestPage extends StatefulWidget {
 class _BookingsRequestPageState extends State<BookingsRequestPage> {
   String? driverId;
   String? userId;
-
+  Driver? driver;
+  final logger = Logger();
   @override
   void initState() {
     super.initState();
@@ -32,7 +35,12 @@ class _BookingsRequestPageState extends State<BookingsRequestPage> {
   Future<void> _fetchDriverId() async {
     userId = context.read<AuthManager>().currentUserId;
     context.read<DriverManager>().listenBookingRequests(userId);
-    driverId = await context.read<DriverManager>().getDriverIdByUserId(userId!);
+    if (userId != null) {
+      driver = await context.read<DriverManager>().fetchDriverByUserId(
+        userId: userId!,
+      );
+      driverId = driver?.id;
+    }
   }
 
   @override
@@ -76,6 +84,7 @@ class _BookingsRequestPageState extends State<BookingsRequestPage> {
                           pickUpLocation,
                           dropOffLocation,
                           myFunctions,
+                          notiManager,
                           bookingManager,
                         )
                       : _buildPortraitItem(
@@ -101,6 +110,7 @@ class _BookingsRequestPageState extends State<BookingsRequestPage> {
     LocationModel? pickUpLocation,
     LocationModel? dropOffLocation,
     MyFunctions myFunctions,
+    NotificationManager notiManager,
     BookingManager bookingManager,
   ) {
     return Row(
@@ -192,7 +202,18 @@ class _BookingsRequestPageState extends State<BookingsRequestPage> {
         const Spacer(),
         button('Nhận đơn', 'green', () async {
           final isPending = await bookingManager.checkPending(booking.id!);
+          final onTrip = await context.read<DriverManager>().checkOnTrip(
+            driverId!,
+          );
 
+          if (onTrip) {
+            snackBarLogger(context, 'Bạn đang trong chuyến xe khác', 'warning');
+            return;
+          }
+          if (booking.type != driver!.typecar) {
+            snackBarLogger(context, 'Loại xe không phù hợp', 'warning');
+            return;
+          }
           if (isPending) {
             final addOke = await bookingManager.addDriverId(
               booking.id!,
@@ -200,10 +221,17 @@ class _BookingsRequestPageState extends State<BookingsRequestPage> {
             );
 
             if (addOke) {
-              context.push('/driver-trip');
+              context.push(
+                '/driver-trip',
+                extra: {'booking': booking, 'driverid': driverId},
+              );
               snackBarLogger(context, 'Bạn đã nhận đơn', 'success');
-            } else {
-              snackBarLogger(context, 'Nhận đơn thất bại', 'error');
+              notiManager.addNotification(
+                'Thông báo từ hệ thống',
+                'success',
+                'Bạn đã nhận đơn hàng',
+                userId!,
+              );
             }
           }
         }),
@@ -262,6 +290,10 @@ class _BookingsRequestPageState extends State<BookingsRequestPage> {
                   'Bạn đang trong chuyến xe khác',
                   'warning',
                 );
+                return;
+              }
+              if (booking.type != driver!.typecar) {
+                snackBarLogger(context, 'Loại xe không phù hợp', 'warning');
                 return;
               }
               if (isPending) {

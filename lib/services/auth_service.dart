@@ -1,3 +1,4 @@
+import 'package:booking_app/ui/shared/showDialogNotif.dart';
 import 'package:flutter/material.dart';
 import 'package:pocketbase/pocketbase.dart';
 import '../models/user.dart';
@@ -9,11 +10,21 @@ import 'pb_client.dart';
 class AuthService extends ChangeNotifier {
   PocketBase get pb => pocketBase;
   final logger = Logger();
-  Future<bool> login(String username, String password) async {
+  Future<bool> login(
+    BuildContext context,
+    String username,
+    String password,
+  ) async {
     logger.i(pb.baseURL);
     try {
       await pb.collection('users').authWithPassword(username, password);
       if (!await checkIsActive(username)) {
+        showMyDialogNoti(
+          // ignore: use_build_context_synchronously
+          context,
+          'Thông báo từ hệ thống',
+          'Tài khoản đã bị khóa',
+        );
         return false;
       }
       notifyListeners();
@@ -144,6 +155,22 @@ class AuthService extends ChangeNotifier {
     } catch (e) {
       logger.i('Lỗi update: $e');
       return null;
+    }
+  }
+
+  Future<bool> toggleActive(String id) async {
+    try {
+      final record = await pb.collection('users').getOne(id);
+      final currentActive = record.data['isactive'] as bool;
+
+      await pb
+          .collection('users')
+          .update(id, body: {'isactive': !currentActive});
+      return true;
+    } on ClientException catch (e) {
+      final data = e.response;
+      logger.i(data);
+      return false;
     }
   }
 

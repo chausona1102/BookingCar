@@ -3,11 +3,12 @@ import 'package:booking_app/ui/auth/auth_manager.dart';
 import 'package:booking_app/ui/notifications/notification_manager.dart';
 import 'package:booking_app/ui/shared/snackBarMessage.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:logger/web.dart';
 import 'package:provider/provider.dart';
 
-class ChangePasswordOverlay extends StatefulWidget {
-  const ChangePasswordOverlay({super.key});
+class LockaCountVerifyOverley extends StatefulWidget {
+  const LockaCountVerifyOverley({super.key});
 
   static Future<void> show(BuildContext context) {
     return showGeneralDialog(
@@ -17,7 +18,7 @@ class ChangePasswordOverlay extends StatefulWidget {
       // ignore: deprecated_member_use
       barrierColor: Colors.black.withOpacity(0.5),
       transitionDuration: const Duration(milliseconds: 350),
-      pageBuilder: (_, __, ___) => const ChangePasswordOverlay(),
+      pageBuilder: (_, __, ___) => const LockaCountVerifyOverley(),
       transitionBuilder: (context, animation, secondaryAnimation, child) {
         final curved = CurvedAnimation(
           parent: animation,
@@ -35,20 +36,17 @@ class ChangePasswordOverlay extends StatefulWidget {
   }
 
   @override
-  State<ChangePasswordOverlay> createState() => _ChangePasswordOverlayState();
+  State<LockaCountVerifyOverley> createState() =>
+      _LockaCountVerifyOverleyState();
 }
 
-class _ChangePasswordOverlayState extends State<ChangePasswordOverlay> {
+class _LockaCountVerifyOverleyState extends State<LockaCountVerifyOverley> {
   final _formKey = GlobalKey<FormState>();
   final _oldPassCtrl = TextEditingController();
-  final _newPassCtrl = TextEditingController();
-  final _confirmPassCtrl = TextEditingController();
 
   final logger = Logger();
 
   bool _obscureOld = true;
-  bool _obscureNew = true;
-  bool _obscureConfirm = true;
   bool _isLoading = false;
 
   late User user;
@@ -61,8 +59,6 @@ class _ChangePasswordOverlayState extends State<ChangePasswordOverlay> {
   @override
   void dispose() {
     _oldPassCtrl.dispose();
-    _newPassCtrl.dispose();
-    _confirmPassCtrl.dispose();
     super.dispose();
   }
 
@@ -71,7 +67,6 @@ class _ChangePasswordOverlayState extends State<ChangePasswordOverlay> {
     setState(() => _isLoading = true);
 
     final currentPass = _oldPassCtrl.text.trim();
-    final newPass = _newPassCtrl.text.trim();
 
     final isCorrect = await context.read<AuthManager>().verify(
       context,
@@ -86,27 +81,25 @@ class _ChangePasswordOverlayState extends State<ChangePasswordOverlay> {
       return;
     }
 
-    final success = await context.read<AuthManager>().updatePassword(
-      oldPassword: currentPass,
-      newPassword: newPass,
-    );
+    final success = await context.read<AuthManager>().toggleIsActive(user.id);
     if (!mounted) return;
 
     setState(() => _isLoading = false);
 
     if (!success) {
-      snackBarMessage(context, 'Đổi mật khẩu thất bại, thử lại!', 'error');
+      snackBarMessage(context, 'Khóa tài khoản thất bại, thử lại!', 'error');
       return;
     }
 
     context.read<NotificationManager>().addNotification(
       "Thông báo từ hệ thống",
       'success',
-      "Đã đổi mật khẩu",
+      "Đã khóa tài khoản",
       user.id,
     );
-    Navigator.of(context).pop();
-    snackBarMessage(context, 'Đổi mật khẩu thành công!', 'success');
+    context.read<AuthManager>().logout();
+    context.go('/login');
+    snackBarMessage(context, 'Khóa tài khoản thành công!', 'success');
   }
 
   @override
@@ -128,7 +121,7 @@ class _ChangePasswordOverlayState extends State<ChangePasswordOverlay> {
                   ),
                   const Expanded(
                     child: Text(
-                      'Đổi mật khẩu',
+                      'Xác thực',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 18,
@@ -171,7 +164,7 @@ class _ChangePasswordOverlayState extends State<ChangePasswordOverlay> {
                       const SizedBox(height: 8),
                       const Center(
                         child: Text(
-                          'Nhập thông tin bên dưới\nđể cập nhật mật khẩu',
+                          'Nhập thông tin bên dưới\nđể xác thực khóa tài khoản',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 13,
@@ -194,46 +187,6 @@ class _ChangePasswordOverlayState extends State<ChangePasswordOverlay> {
                             ? 'Vui lòng nhập mật khẩu hiện tại'
                             : null,
                       ),
-                      const SizedBox(height: 20),
-
-                      _buildLabel('Mật khẩu mới'),
-                      const SizedBox(height: 8),
-                      _buildPasswordField(
-                        controller: _newPassCtrl,
-                        hint: 'Tối thiểu 8 ký tự',
-                        obscure: _obscureNew,
-                        onToggle: () =>
-                            setState(() => _obscureNew = !_obscureNew),
-                        validator: (v) {
-                          if (v == null || v.isEmpty) {
-                            return 'Vui lòng nhập mật khẩu mới';
-                          }
-                          if (v.length < 8) {
-                            return 'Mật khẩu phải có ít nhất 8 ký tự';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 20),
-
-                      _buildLabel('Xác nhận mật khẩu mới'),
-                      const SizedBox(height: 8),
-                      _buildPasswordField(
-                        controller: _confirmPassCtrl,
-                        hint: 'Nhập lại mật khẩu mới',
-                        obscure: _obscureConfirm,
-                        onToggle: () =>
-                            setState(() => _obscureConfirm = !_obscureConfirm),
-                        validator: (v) {
-                          if (v == null || v.isEmpty) {
-                            return 'Vui lòng xác nhận mật khẩu';
-                          }
-                          if (v != _newPassCtrl.text) {
-                            return 'Mật khẩu không khớp';
-                          }
-                          return null;
-                        },
-                      ),
                       const SizedBox(height: 40),
 
                       SizedBox(
@@ -242,11 +195,19 @@ class _ChangePasswordOverlayState extends State<ChangePasswordOverlay> {
                         child: ElevatedButton(
                           onPressed: _isLoading ? null : _handleSubmit,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF00C853),
+                            backgroundColor: const Color.fromARGB(
+                              255,
+                              200,
+                              13,
+                              0,
+                            ),
                             foregroundColor: Colors.white,
-                            disabledBackgroundColor: const Color(
-                              0xFF00C853,
-                              // ignore: deprecated_member_use
+                            disabledBackgroundColor: const Color.fromARGB(
+                              255,
+                              200,
+                              0,
+                              0,
+                            // ignore: deprecated_member_use
                             ).withOpacity(0.5),
                             elevation: 0,
                             shape: RoundedRectangleBorder(
@@ -263,7 +224,7 @@ class _ChangePasswordOverlayState extends State<ChangePasswordOverlay> {
                                   ),
                                 )
                               : const Text(
-                                  'Xác nhận đổi mật khẩu',
+                                  'Khóa',
                                   style: TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w700,

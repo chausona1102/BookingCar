@@ -13,12 +13,13 @@ class NotificationManager extends ChangeNotifier {
     final notis = await NotificationService().getNotificationsOfUser(userId);
     _notifications.clear();
     _notifications.addAll(notis);
+    _notifications.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     _unreadCount = notis.length;
     _unreadCount = 0;
     notifyListeners();
   }
 
- Future<void> addNotification(
+  Future<void> addNotification(
     String title,
     String type,
     String message,
@@ -36,8 +37,12 @@ class NotificationManager extends ChangeNotifier {
     notifyListeners();
   }
 
-Future<bool> removeNotificationById(String id, String userId) async {
+  Future<bool> removeNotificationById(String id, String userId) async {
     final result = await NotificationService().removeNotificationById(id);
+    if (result) {
+      _notifications.removeWhere((n) => n.id == id);
+      notifyListeners();
+    }
     return result;
   }
 

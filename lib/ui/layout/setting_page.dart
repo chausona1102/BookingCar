@@ -3,6 +3,7 @@ import 'package:booking_app/models/user.dart';
 import 'package:booking_app/ui/auth/auth_manager.dart';
 import 'package:booking_app/ui/layout/changepasswordoverley.dart';
 import 'package:booking_app/ui/layout/driver/driver_manager.dart';
+import 'package:booking_app/ui/layout/lockacountverifyoverley.dart';
 import 'package:booking_app/ui/shared/headerAppbar.dart';
 import 'package:booking_app/ui/shared/showDialogNotif.dart';
 import 'package:booking_app/ui/shared/snackBarLogger.dart';
@@ -144,6 +145,7 @@ class _SettingPageState extends State<SettingPage> {
         boxShadow: [
           BoxShadow(
             color: (isOnline ? const Color(0xFF00C853) : Colors.grey)
+                // ignore: deprecated_member_use
                 .withOpacity(0.12),
             blurRadius: 16,
             offset: const Offset(0, 6),
@@ -158,6 +160,7 @@ class _SettingPageState extends State<SettingPage> {
             height: 50,
             decoration: BoxDecoration(
               color: (isOnline ? const Color(0xFF00C853) : Colors.grey.shade400)
+                  // ignore: deprecated_member_use
                   .withOpacity(0.12),
               borderRadius: BorderRadius.circular(14),
             ),
@@ -198,6 +201,7 @@ class _SettingPageState extends State<SettingPage> {
 
           Switch(
             value: isOnline,
+            // ignore: deprecated_member_use
             activeColor: Colors.white,
             activeTrackColor: const Color(0xFF00C853),
             inactiveThumbColor: Colors.white,
@@ -207,9 +211,11 @@ class _SettingPageState extends State<SettingPage> {
               final ok = await driverManager.updateIsOnline(driver.id);
               if (!ok) {
                 setState(() => driver.isonline = !value);
+                // ignore: use_build_context_synchronously
                 snackBarLogger(context, 'Cập nhật thất bại!', 'error');
               } else {
                 snackBarLogger(
+                  // ignore: use_build_context_synchronously
                   context,
                   value ? 'Đã online' : 'Đã offline',
                   'success',
@@ -233,6 +239,7 @@ class _SettingPageState extends State<SettingPage> {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
+              // ignore: deprecated_member_use
               color: const Color(0xFF00C853).withOpacity(0.12),
               blurRadius: 16,
               offset: const Offset(0, 6),
@@ -246,6 +253,7 @@ class _SettingPageState extends State<SettingPage> {
               width: 50,
               height: 50,
               decoration: BoxDecoration(
+                // ignore: deprecated_member_use
                 color: const Color.fromARGB(255, 80, 126, 99).withOpacity(0.12),
                 borderRadius: BorderRadius.circular(14),
               ),
@@ -298,6 +306,7 @@ class _SettingPageState extends State<SettingPage> {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
+              // ignore: deprecated_member_use
               color: const Color(0xFF00C853).withOpacity(0.12),
               blurRadius: 16,
               offset: const Offset(0, 6),
@@ -311,6 +320,7 @@ class _SettingPageState extends State<SettingPage> {
               width: 50,
               height: 50,
               decoration: BoxDecoration(
+                // ignore: deprecated_member_use
                 color: const Color.fromARGB(255, 80, 126, 99).withOpacity(0.12),
                 borderRadius: BorderRadius.circular(14),
               ),
@@ -362,6 +372,7 @@ class _SettingPageState extends State<SettingPage> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
+            // ignore: deprecated_member_use
             color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
@@ -403,9 +414,7 @@ class _SettingPageState extends State<SettingPage> {
           ),
           Divider(height: 1, color: Colors.grey.shade100),
           TextButton(
-            onPressed: () {
-              showMyDialogNoti(context, 'Thông báo', 'Tính năng chưa hỗ trợ');
-            },
+            onPressed: () => LockaCountVerifyOverley.show(context),
             style: TextButton.styleFrom(
               foregroundColor: Colors.red.shade400,
               minimumSize: const Size(double.infinity, 48),

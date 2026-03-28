@@ -50,6 +50,7 @@ class _NotificationPageState extends State<NotificationPage> {
                   final id = n.id;
                   final date = n.timeDate;
                   final hour = n.timeHour;
+                  // ignore: prefer_typing_uninitialized_variables
                   var fileName;
                   switch (type) {
                     case 'success':

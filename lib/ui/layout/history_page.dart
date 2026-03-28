@@ -7,6 +7,7 @@ import 'package:booking_app/ui/shared/showDialogNotif.dart';
 import 'package:booking_app/ui/shared/statusChip.dart';
 import 'package:booking_app/utils/myFunction.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'customer/booking_manager.dart';
 
@@ -178,7 +179,7 @@ class _HistoryPageState extends State<HistoryPage> {
           ],
         ),
         trailing: Text(
-          myFn.convertToVND(booking.price.toInt().toString()) + 'đ',
+          '${myFn.convertToVND(booking.price.toInt().toString())}đ',
           style: const TextStyle(
             fontWeight: FontWeight.bold,
             color: Colors.green,
@@ -327,7 +328,7 @@ class _HistoryPageState extends State<HistoryPage> {
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: Text(
-                                    booking.driver!.licensenumber,
+                                    booking.driver!.carnumber,
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,
@@ -530,96 +531,55 @@ class _HistoryPageState extends State<HistoryPage> {
                     ),
                   ),
                   const SizedBox(height: 8),
-
-                  Card(
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      children: [
-                        ListTile(
-                          leading: const Icon(
-                            Icons.receipt_long,
-                            color: Colors.green,
-                          ),
-                          title: const Text('Xuất hoá đơn'),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: const [
-                              Text(
-                                'Đã phát hành',
-                                style: TextStyle(color: Colors.green),
-                              ),
-                              Icon(Icons.chevron_right),
-                            ],
-                          ),
-                          onTap: () {
-                            showMyDialogNoti(
-                              context,
-                              "Thông báo",
-                              'Tính năng chưa hỗ trợ',
-                            );
-                          },
-                        ),
-                        const Divider(height: 0),
-                        ListTile(
-                          leading: const Icon(
-                            Icons.headset_mic,
-                            color: Colors.grey,
-                          ),
-                          title: const Text('Hỗ trợ thông tin chuyến'),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: () {
-                            showMyDialogNoti(
-                              context,
-                              "Liên hệ tổng đài",
-                              '199 xxx 1000',
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Bottom buttons
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () {},
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.teal,
-                            side: const BorderSide(color: Colors.teal),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(24),
-                            ),
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                          ),
-                          child: const Text('Xem biên nhận'),
-                        ),
+                  if (booking.status == 'completed') ...[
+                    Card(
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            // TODO: handle re-booking
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.teal,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(24),
+                      child: Column(
+                        children: [
+                          ListTile(
+                            leading: const Icon(
+                              Icons.receipt_long,
+                              color: Colors.green,
                             ),
-                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            title: const Text('Xuất hoá đơn'),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: const [
+                                Text(
+                                  'Đã phát hành',
+                                  style: TextStyle(color: Colors.green),
+                                ),
+                                Icon(Icons.chevron_right),
+                              ],
+                            ),
+                            onTap: () {
+                              context.push('/receipt-page', extra: booking);
+                            },
                           ),
-                          child: const Text('Đặt lại'),
-                        ),
+                          const Divider(height: 0),
+                          ListTile(
+                            leading: const Icon(
+                              Icons.headset_mic,
+                              color: Colors.grey,
+                            ),
+                            title: const Text('Hỗ trợ thông tin chuyến'),
+                            trailing: const Icon(Icons.chevron_right),
+                            onTap: () {
+                              showMyDialogNoti(
+                                context,
+                                "Liên hệ tổng đài",
+                                '199 xxx 1000',
+                              );
+                            },
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
                 ],
               ),
             ),

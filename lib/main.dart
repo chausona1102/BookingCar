@@ -26,6 +26,7 @@ import 'package:booking_app/ui/layout/driver/driver_page.dart';
 import 'package:booking_app/ui/auth/customer_manager.dart';
 import 'package:booking_app/ui/layout/driver/driver_trip_tracking_page.dart';
 import 'package:booking_app/ui/layout/driver/payment_trip_page.dart';
+import 'package:booking_app/ui/layout/receipt_page.dart';
 import 'package:booking_app/ui/layout/setting_page.dart';
 import 'package:booking_app/ui/layout/edit_info_page.dart';
 import 'package:booking_app/ui/layout/information_page.dart';
@@ -177,6 +178,13 @@ class _AppRootState extends State<AppRoot> {
           path: '/history',
           builder: (_, __) {
             return HistoryPage();
+          },
+        ),
+        GoRoute(
+          path: '/receipt-page',
+          builder: (context, state) {
+            final data = state.extra as BookingModel;
+            return ReceiptPage(booking: data);
           },
         ),
         GoRoute(

@@ -13,6 +13,7 @@ import 'package:booking_app/utils/myFunction.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -30,7 +31,9 @@ class _DriverTripTrackingPageState extends State<DriverTripTrackingPage>
   GoogleMapController? _mapController;
   StreamSubscription<Position>? _positionStream;
 
+  // ignore: prefer_final_fields
   Set<Polyline> _polylines = {};
+  // ignore: prefer_final_fields
   Set<Marker> _markers = {};
 
   LatLng? _pickupLatLng;
@@ -42,7 +45,6 @@ class _DriverTripTrackingPageState extends State<DriverTripTrackingPage>
   late AnimationController _sheetAnimController;
   late Animation<Offset> _sheetSlide;
   bool _sheetVisible = false;
-
   @override
   void initState() {
     super.initState();
@@ -65,7 +67,6 @@ class _DriverTripTrackingPageState extends State<DriverTripTrackingPage>
       final driverId = await driverManager.getDriverIdByUserId(userId!);
       driverManager.listenBookingTracing(driverId);
     });
-
     _getCurrentLocation();
     _listenToLocation();
   }
@@ -86,6 +87,13 @@ class _DriverTripTrackingPageState extends State<DriverTripTrackingPage>
     setState(() => _sheetVisible = !_sheetVisible);
   }
 
+  // Future<void> _loadDriverIcon() async {
+  //   _driverIcon = await BitmapDescriptor.fromAssetImage(
+  //     const ImageConfiguration(size: Size(10, 10)),
+  //     'assets/icons/carmaker.png',
+  //   );
+  // }
+
   Future<void> _getCurrentLocation() async {
     final position = await Geolocator.getCurrentPosition(
       desiredAccuracy: LocationAccuracy.high,
@@ -95,7 +103,9 @@ class _DriverTripTrackingPageState extends State<DriverTripTrackingPage>
       _currentLocation = latLng;
       _updateDriverMarker(latLng);
     });
-    _drawAllRoutesOnce();
+    if (_pickupLatLng != null && _dropoffLatLng != null) {
+      _drawAllRoutesOnce();
+    }
   }
 
   void _updateDriverMarker(LatLng latLng) {
@@ -105,6 +115,7 @@ class _DriverTripTrackingPageState extends State<DriverTripTrackingPage>
         markerId: const MarkerId('driver'),
         position: latLng,
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+        infoWindow: const InfoWindow(title: 'Vị trí hiện tại'),
       ),
     );
   }
@@ -125,9 +136,6 @@ class _DriverTripTrackingPageState extends State<DriverTripTrackingPage>
         mode: TravelMode.driving,
       ),
     );
-    print('DEBUG loc: $_currentLocation');
-    print('DEBUG pickup: $_pickupLatLng');
-    print('DEBUG dropoff: $_dropoffLatLng');
     if (result.points.isEmpty) return;
     setState(() {
       _polylines.add(
@@ -168,8 +176,9 @@ class _DriverTripTrackingPageState extends State<DriverTripTrackingPage>
     if (_routeDrawn) return;
     if (_currentLocation == null ||
         _pickupLatLng == null ||
-        _dropoffLatLng == null)
+        _dropoffLatLng == null) {
       return;
+    }
     await _drawRoute(
       from: _currentLocation!,
       to: _pickupLatLng!,
@@ -192,14 +201,47 @@ class _DriverTripTrackingPageState extends State<DriverTripTrackingPage>
             accuracy: LocationAccuracy.high,
             distanceFilter: 10,
           ),
-        ).listen((position) {
+        ).listen((position) async {
           final latLng = LatLng(position.latitude, position.longitude);
           setState(() {
             _currentLocation = latLng;
             _updateDriverMarker(latLng);
           });
           _mapController?.animateCamera(CameraUpdate.newLatLng(latLng));
+
+          if (_pickupLatLng != null && _dropoffLatLng != null) {
+            final booking = context.read<DriverManager>().currentBooking;
+            await _redrawRouteFromCurrentLocation(
+              booking?.status ?? 'accepted',
+            );
+          }
         });
+  }
+
+  Future<void> _redrawRouteFromCurrentLocation(String status) async {
+    if (status == 'ontrip') {
+      setState(() {
+        _polylines.removeWhere((p) => p.polylineId.value == 'toPickup');
+      });
+
+      await _drawRoute(
+        from: _currentLocation!,
+        to: _dropoffLatLng!,
+        id: 'toDropoff',
+        color: const Color(0xFF00C853),
+      );
+    } else {
+      setState(() {
+        _polylines.removeWhere((p) => p.polylineId.value == 'toPickup');
+      });
+
+      await _drawRoute(
+        from: _currentLocation!,
+        to: _pickupLatLng!,
+        id: 'toPickup',
+        color: Colors.orange,
+      );
+    }
   }
 
   String _mapStatus(String status) {
@@ -234,6 +276,7 @@ class _DriverTripTrackingPageState extends State<DriverTripTrackingPage>
               borderRadius: BorderRadius.circular(32),
               boxShadow: [
                 BoxShadow(
+                  // ignore: deprecated_member_use
                   color: Colors.black.withOpacity(0.25),
                   blurRadius: 16,
                   offset: const Offset(0, 6),
@@ -293,6 +336,7 @@ class _DriverTripTrackingPageState extends State<DriverTripTrackingPage>
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
+            // ignore: deprecated_member_use
             color: Colors.black.withOpacity(0.18),
             blurRadius: 24,
             offset: const Offset(0, -4),
@@ -414,6 +458,7 @@ class _DriverTripTrackingPageState extends State<DriverTripTrackingPage>
                           'ontrip',
                         );
                         snackBarLogger(
+                          // ignore: use_build_context_synchronously
                           context,
                           ok ? 'Gét gô' : 'Lỗi',
                           ok ? 'success' : 'warning',
@@ -440,12 +485,15 @@ class _DriverTripTrackingPageState extends State<DriverTripTrackingPage>
                         );
                         if (ok) {
                           snackBarLogger(
+                            // ignore: use_build_context_synchronously
                             context,
                             'Mang chuyến tiếp theo đến đây',
                             'success',
                           );
+                          // ignore: use_build_context_synchronously
                           context.push('/payment-trip-page', extra: booking);
                         } else {
+                          // ignore: use_build_context_synchronously
                           snackBarLogger(context, 'Lỗi', 'warning');
                         }
                       },
@@ -466,118 +514,167 @@ class _DriverTripTrackingPageState extends State<DriverTripTrackingPage>
     final myFunctions = context.watch<MyFunctions>();
     final isLandscape =
         MediaQuery.of(context).orientation == Orientation.landscape;
-    return Consumer<DriverManager>(
-      builder: (context, driverManager, child) {
-        final booking = driverManager.currentBooking;
+    if (_currentLocation == null) {
+      return Scaffold(
+        body: Center(
+          child: Column(
+            children: [
+              const Spacer(),
+              SpinKitCircle(color: Colors.green),
+              const Text('Tìm vị trí của bạn'),
+              const Spacer(),
+            ],
+          ),
+        ),
+      );
+    } else {
+      return Consumer<DriverManager>(
+        builder: (context, driverManager, child) {
+          final booking = driverManager.currentBooking;
 
-        if (booking == null) {
+          if (booking == null) {
+            return Scaffold(
+              extendBodyBehindAppBar: true,
+              appBar: myAppBarPro(context, 'Theo dõi cuốc xe'),
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.directions_car_outlined,
+                      size: 80,
+                      color: Colors.grey.shade300,
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Chưa có chuyến đang chạy',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black54,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
           return Scaffold(
             extendBodyBehindAppBar: true,
             appBar: myAppBarPro(context, 'Theo dõi cuốc xe'),
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.directions_car_outlined,
-                    size: 80,
-                    color: Colors.grey.shade300,
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Chưa có chuyến đang chạy',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black54,
+            body: FutureBuilder(
+              future: Future.wait([
+                Future.value(booking.pickupLocation),
+                Future.value(booking.dropoffLocation),
+              ]),
+              builder: (context, snap) {
+                if (!snap.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                final pickup = snap.data![0];
+                final dropoff = snap.data![1];
+
+                final pickupLatLng = LatLng(
+                  double.parse(pickup.latitude),
+                  double.parse(pickup.longitude),
+                );
+                final dropoffLatLng = LatLng(
+                  double.parse(dropoff.latitude),
+                  double.parse(dropoff.longitude),
+                );
+
+                _pickupLatLng = pickupLatLng;
+                _dropoffLatLng = dropoffLatLng;
+
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  _setPickupAndDropoffMarkers();
+                  _drawAllRoutesOnce();
+                });
+
+                return Stack(
+                  children: [
+                    GoogleMap(
+                      initialCameraPosition: CameraPosition(
+                        target: _currentLocation ?? pickupLatLng,
+                        zoom: 16,
+                      ),
+                      polylines: _polylines,
+                      markers: _markers,
+                      myLocationEnabled: true,
+
+                      myLocationButtonEnabled: false,
+                      zoomControlsEnabled: false,
+                      onMapCreated: (controller) => _mapController = controller,
                     ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }
 
-        return Scaffold(
-          extendBodyBehindAppBar: true,
-          appBar: myAppBarPro(context, 'Theo dõi cuốc xe'),
-          body: FutureBuilder(
-            future: Future.wait([
-              Future.value(booking.pickupLocation),
-              Future.value(booking.dropoffLocation),
-            ]),
-            builder: (context, snap) {
-              if (!snap.hasData) {
-                return const Center(child: CircularProgressIndicator());
-              }
-
-              final pickup = snap.data![0];
-              final dropoff = snap.data![1];
-
-              final pickupLatLng = LatLng(
-                double.parse(pickup.latitude),
-                double.parse(pickup.longitude),
-              );
-              final dropoffLatLng = LatLng(
-                double.parse(dropoff.latitude),
-                double.parse(dropoff.longitude),
-              );
-
-              _pickupLatLng = pickupLatLng;
-              _dropoffLatLng = dropoffLatLng;
-
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                _setPickupAndDropoffMarkers();
-                _drawAllRoutesOnce();
-              });
-
-              return Stack(
-                children: [
-                  GoogleMap(
-                    initialCameraPosition: CameraPosition(
-                      target: pickupLatLng,
-                      zoom: 16,
-                    ),
-                    polylines: _polylines,
-                    markers: _markers,
-                    myLocationButtonEnabled: false,
-                    zoomControlsEnabled: false,
-                    onMapCreated: (controller) => _mapController = controller,
-                  ),
-
-                  Positioned(
-                    bottom: isLandscape ? 10 : 120,
-                    left: 0,
-                    right: 0,
-                    child: Center(
-                      child: _statusBadge(_mapStatus(booking.status)),
-                    ),
-                  ),
-
-                  SlideTransition(
-                    position: _sheetSlide,
-                    child: Align(
-                      alignment: Alignment.bottomCenter,
-                      child: _buildBottomSheet(
-                        context,
-                        booking,
-                        pickup.placeName,
-                        dropoff.placeName,
-                        customerManager,
-                        bookingManager,
-                        myFunctions,
+                    Positioned(
+                      bottom: isLandscape ? 10 : 120,
+                      left: 0,
+                      right: 0,
+                      child: Center(
+                        child: _statusBadge(_mapStatus(booking.status)),
                       ),
                     ),
-                  ),
 
-                  _buildToggleButton(isLandscape),
-                ],
-              );
-            },
-          ),
-        );
-      },
-    );
+                    SlideTransition(
+                      position: _sheetSlide,
+                      child: Align(
+                        alignment: Alignment.bottomCenter,
+                        child: _buildBottomSheet(
+                          context,
+                          booking,
+                          pickup.placeName,
+                          dropoff.placeName,
+                          customerManager,
+                          bookingManager,
+                          myFunctions,
+                        ),
+                      ),
+                    ),
+
+                    _buildToggleButton(isLandscape),
+                    Positioned(
+                      bottom: 40,
+                      right: 20,
+                      child: Container(
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.white),
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                        child: Center(
+                          child: IconButton(
+                            onPressed: () {
+                              if (_currentLocation != null) {
+                                _mapController?.animateCamera(
+                                  CameraUpdate.newCameraPosition(
+                                    CameraPosition(
+                                      target: _currentLocation!,
+                                      zoom: 16,
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
+                            icon: Icon(
+                              Icons.pin_drop_outlined,
+                              color: Colors.green,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          );
+        },
+      );
+    }
   }
 }
 
@@ -685,6 +782,7 @@ Widget _statusBadge(String status) {
       borderRadius: BorderRadius.circular(32),
       boxShadow: [
         BoxShadow(
+          // ignore: deprecated_member_use
           color: bgColor.withOpacity(0.3),
           blurRadius: 12,
           offset: const Offset(0, 4),

@@ -29,7 +29,7 @@ class _LoginPageState extends State<LoginPage> {
     final password = _passwordController.text.trim();
 
     final authManager = context.read<AuthManager>();
-    final success = await authManager.login(username, password);
+    final success = await authManager.login(context, username, password);
     setState(() => _isLoading = false);
 
     if (success) {
@@ -84,6 +84,7 @@ class _LoginPageState extends State<LoginPage> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
+                        Image.asset('assets/images/logo.png', height: 60),
                         const Text(
                           'Booking Car',
                           style: TextStyle(

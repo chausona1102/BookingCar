@@ -17,8 +17,12 @@ class AuthManager extends ChangeNotifier {
   // bool? get isLoggedIn => _authService.isLoggedIn;
   bool get isLoggedIn => _user != null;
   User? get user => _user;
-  Future<bool> login(String username, String password) async {
-    final success = await _authService.login(username, password);
+  Future<bool> login(
+    BuildContext context,
+    String username,
+    String password,
+  ) async {
+    final success = await _authService.login(context, username, password);
     if (success) {
       _user = _authService.currentUser;
       notifyListeners();
@@ -26,8 +30,12 @@ class AuthManager extends ChangeNotifier {
     return success;
   }
 
-  Future<bool> verify(String username, String password) async {
-    final success = await _authService.login(username, password);
+  Future<bool> verify(
+    BuildContext context,
+    String username,
+    String password,
+  ) async {
+    final success = await _authService.login(context, username, password);
     if (success) {
       notifyListeners();
     }
@@ -113,6 +121,14 @@ class AuthManager extends ChangeNotifier {
       return true;
     }
     return false;
+  }
+
+  Future<bool> toggleIsActive(String id) async {
+    final success = await _authService.toggleActive(id);
+    if (!success) {
+      return false;
+    }
+    return true;
   }
 
   User? get currentUser => _authService.currentUser;
