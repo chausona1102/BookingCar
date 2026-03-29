@@ -17,7 +17,7 @@ import 'package:booking_app/ui/layout/customer/booking_manager.dart';
 import 'package:booking_app/ui/layout/customer/payment_success.dart';
 import 'package:booking_app/ui/layout/customer/trip_tracing_page.dart';
 import 'package:booking_app/ui/layout/driver/bookings_request_page.dart';
-import 'package:booking_app/ui/layout/driver/driver_list_page.dart';
+import 'package:booking_app/ui/layout/customer/driver_list_page.dart';
 import 'package:booking_app/ui/layout/driver/driver_manager.dart';
 import 'package:booking_app/ui/layout/customer/booking_page.dart';
 import 'package:booking_app/ui/layout/history_page.dart';

@@ -1,3 +1,4 @@
+import 'package:booking_app/models/driver.dart';
 import 'package:booking_app/models/membership.dart';
 import 'package:booking_app/models/user.dart';
 import 'package:booking_app/ui/shared/backPositioned.dart';
@@ -37,6 +38,7 @@ class _BookingPageState extends State<BookingPage>
   late String? type;
   late Membership? memberInfo;
   late User? user;
+  late Driver? driver;
   late String userId;
   late double? amount;
   double disCount = 1;
@@ -68,6 +70,8 @@ class _BookingPageState extends State<BookingPage>
 
     type = widget.data?['type'] ?? 'car';
     memberInfo = widget.data?['memberInfo'] as Membership?;
+    driver = widget.data?['driver'] as Driver?;
+    logger.i(driver);
     if (memberInfo != null) {
       disCount = (memberInfo!.discountPercent) / 100;
     } else {
@@ -346,6 +350,24 @@ class _BookingPageState extends State<BookingPage>
                       notChange: false,
                     ),
                   ],
+                  if (driver != null && type == 'driver') ...[
+                    const SizedBox(height: 14),
+                    _infoRow(
+                      icon: 'assets/icons/driver.svg',
+                      iconColor: 'green',
+                      title: 'Tài xế',
+                      value: driver!.user.fullName,
+                      notChange: false,
+                    ),
+                    const SizedBox(height: 14),
+                    _infoRow(
+                      icon: 'assets/icons/car.svg',
+                      iconColor: 'green',
+                      title: 'Biển số',
+                      value: driver!.carnumber,
+                      notChange: false,
+                    ),
+                  ],
 
                   const Padding(
                     padding: EdgeInsets.symmetric(vertical: 16),
@@ -402,7 +424,7 @@ class _BookingPageState extends State<BookingPage>
                   ),
 
                   const SizedBox(height: 16),
-
+                  // Xác nhận đặt xe
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -426,13 +448,25 @@ class _BookingPageState extends State<BookingPage>
                           );
                           return;
                         }
-                        final result = await bookingManager.addBooking(
-                          userId: user!.id,
-                          price: amount!,
-                          pickupLocation: pickupLocation!,
-                          dropoffLocation: dropoffLocation!,
-                          type: type!,
-                        );
+                        bool result = false;
+                        if (type == 'driver') {
+                          result = await bookingManager.addBookingWithDriver(
+                            userId: user!.id,
+                            price: amount!,
+                            pickupLocation: pickupLocation!,
+                            dropoffLocation: dropoffLocation!,
+                            driverId: driver!.id,
+                            type: type!,
+                          );
+                        } else {
+                          result = await bookingManager.addBooking(
+                            userId: user!.id,
+                            price: amount!,
+                            pickupLocation: pickupLocation!,
+                            dropoffLocation: dropoffLocation!,
+                            type: type!,
+                          );
+                        }
                         if (result) {
                           snackBarLogger(
                             context,
@@ -586,7 +620,10 @@ class _BookingPageState extends State<BookingPage>
               type == 'car',
               type == 'car' ? 'medium' : 'small',
               () {
-                setLocal(() => type = 'car');
+                // setLocal(() => type = 'car');
+                setState(() {
+                  type = 'car';
+                });
                 _recalcPayment();
               },
             ),
@@ -598,27 +635,29 @@ class _BookingPageState extends State<BookingPage>
               type == 'motobike',
               type == 'motobike' ? 'medium' : 'small',
               () {
-                setLocal(() => type = 'motobike');
+                setState(() => type = 'motobike');
                 _recalcPayment();
               },
             ),
-            const SizedBox(width: 10),
-            svgButtonPro(
-              'assets/icons/driver.svg',
-              'Tài xế',
-              'dart45',
-              type == 'driver',
-              type == 'driver' ? 'medium' : 'small',
-              () {
-                setLocal(() => type = 'driver');
-                snackBarLogger(
-                  context,
-                  'Tài xế sẽ đến chậm đôi chút, quý khách thông cảm giúp rùa nhỏ ạ!',
-                  'success',
-                );
-                _recalcPayment();
-              },
-            ),
+            if (driver != null) ...[
+              const SizedBox(width: 10),
+              svgButtonPro(
+                'assets/icons/driver.svg',
+                'Tài xế',
+                'dart45',
+                type == 'driver',
+                type == 'driver' ? 'medium' : 'small',
+                () {
+                  setState(() => type = 'driver');
+                  snackBarLogger(
+                    context,
+                    'Tài xế sẽ đến chậm đôi chút, quý khách thông cảm giúp rùa nhỏ ạ!',
+                    'success',
+                  );
+                  _recalcPayment();
+                },
+              ),
+            ],
           ],
         );
       },

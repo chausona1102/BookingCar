@@ -122,9 +122,9 @@ class DriverService {
       final records = await pb
           .collection('bookings')
           .getList(
-            filter: "driver = null && status = 'pending'",
+            filter: "status = 'pending'",
             sort: '-bookingtime',
-            expand: 'pickuplocation,dropofflocation,user',
+            expand: 'pickuplocation,dropofflocation,user,driver,driver.user',
           );
       return records.items.map((e) => BookingModel.fromRecord(e)).toList();
     } catch (e) {
@@ -247,8 +247,7 @@ class DriverService {
           .getList(
             page: 1,
             perPage: 1,
-            filter:
-                "driver = '$driverId' && status != 'completed' && status != 'cancelled'",
+            filter: "driver = '$driverId' && status = 'accepted'",
           );
 
       return records.items.isNotEmpty;

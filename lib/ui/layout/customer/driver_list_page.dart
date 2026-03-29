@@ -156,20 +156,11 @@ class _DriverListPage extends State<DriverListPage> {
                             'type': 'driver',
                             'memberInfo': _membership,
                             'user': user,
+                            'driver': driver,
                           },
                         );
                       }),
-                      // TextButton(
-                      //   onPressed: () {},
-                      //   style: TextButton.styleFrom(
-                      //     foregroundColor: Colors.green,
-                      //     shape: RoundedRectangleBorder(
-                      //       borderRadius: BorderRadius.circular(8),
-                      //     ),
-                      //     side: const BorderSide(color: Colors.green),
-                      //   ),
-                      //   child: const Text('Đặt tài xế'),
-                      // ),
+                     
                     ],
                   ),
                 ),

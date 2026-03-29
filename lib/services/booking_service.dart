@@ -47,6 +47,45 @@ class BookingService extends ChangeNotifier {
     }
   }
 
+  Future<bool> addBookingWithDriver({
+    required String userId,
+    required double price,
+    required LocationModel pickupLocation,
+    required LocationModel dropoffLocation,
+    required String type,
+    required String driverId,
+    String status = 'pending',
+  }) async {
+    try {
+      final pickupRecord = await pb
+          .collection('locations')
+          .create(body: pickupLocation.toJson());
+      final dropoffRecord = await pb
+          .collection('locations')
+          .create(body: dropoffLocation.toJson());
+      await pb
+          .collection('bookings')
+          .create(
+            body: {
+              'status': status,
+              'price': price.toInt(),
+              'user': userId,
+              'driver': driverId,
+              'pickuplocation': pickupRecord.id,
+              'dropofflocation': dropoffRecord.id,
+              'type': type,
+              'bookingtime': DateTime.now().toIso8601String(),
+            },
+          );
+      notifyListeners();
+      return true;
+    } catch (e) {
+      logger.e('An error occured', error: e);
+      return false;
+    }
+  }
+
+
   Future<BookingModel?> getCurrentTracing(String userId) async {
     try {
       final record = await pb

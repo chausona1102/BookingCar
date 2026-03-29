@@ -26,10 +26,24 @@ class _BookingsRequestPageState extends State<BookingsRequestPage> {
   String? userId;
   Driver? driver;
   final logger = Logger();
+  late DriverManager _driverManager;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _driverManager = context.read<DriverManager>();
+  }
+
   @override
   void initState() {
     super.initState();
     _fetchDriverId();
+  }
+
+  @override
+  void dispose() {
+    _driverManager.disposeBookingListener();
+    super.dispose();
   }
 
   Future<void> _fetchDriverId() async {
@@ -67,10 +81,8 @@ class _BookingsRequestPageState extends State<BookingsRequestPage> {
             padding: const EdgeInsets.all(8),
             itemBuilder: (_, i) {
               final booking = bookings[i];
-
               final pickUpLocation = booking.pickupLocation;
               final dropOffLocation = booking.dropoffLocation;
-
               return Card(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -119,12 +131,19 @@ class _BookingsRequestPageState extends State<BookingsRequestPage> {
         // IMAGE
         ClipRRect(
           borderRadius: BorderRadius.circular(8),
-          child: Image.asset(
-            myFunctions.getTypeImage(booking.type),
-            width: 70,
-            height: 70,
-            fit: BoxFit.cover,
-          ),
+          child: booking.driver != null
+              ? Image.network(
+                  booking.driver.user.avatarUrl,
+                  width: 70,
+                  height: 70,
+                  fit: BoxFit.cover,
+                )
+              : Image.asset(
+                  myFunctions.getTypeImage(booking.type),
+                  width: 70,
+                  height: 70,
+                  fit: BoxFit.cover,
+                ),
         ),
 
         const SizedBox(width: 16),
@@ -170,6 +189,21 @@ class _BookingsRequestPageState extends State<BookingsRequestPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (booking.driver != null) ...[
+                Row(
+                  children: [
+                    svgIcon('assets/icons/driver.svg', 'green', false),
+                    Text(
+                      "Yêu cầu: ${booking.driver.user.fullName}",
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
+                const Divider(color: Colors.green, thickness: 2),
+              ],
               Row(
                 children: [
                   svgIcon('assets/icons/location.svg', 'red', false),
@@ -205,12 +239,17 @@ class _BookingsRequestPageState extends State<BookingsRequestPage> {
           final onTrip = await context.read<DriverManager>().checkOnTrip(
             driverId!,
           );
-
+          if (booking.driver != null) {
+            if (driverId != booking.driver.id) {
+              snackBarLogger(context, 'Đây không phải đơn của bạn', 'warning');
+              return;
+            }
+          }
           if (onTrip) {
             snackBarLogger(context, 'Bạn đang trong chuyến xe khác', 'warning');
             return;
           }
-          if (booking.type != driver!.typecar) {
+          if ((booking.type != driver!.typecar) && booking.type != 'driver') {
             snackBarLogger(context, 'Loại xe không phù hợp', 'warning');
             return;
           }
@@ -255,12 +294,19 @@ class _BookingsRequestPageState extends State<BookingsRequestPage> {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: Image.asset(
-                myFunctions.getTypeImage(booking.type),
-                width: 60,
-                height: 60,
-                fit: BoxFit.cover,
-              ),
+              child: booking.driver != null
+                  ? Image.network(
+                      booking.driver.user.avatarUrl,
+                      width: 60,
+                      height: 60,
+                      fit: BoxFit.cover,
+                    )
+                  : Image.asset(
+                      myFunctions.getTypeImage(booking.type),
+                      width: 60,
+                      height: 60,
+                      fit: BoxFit.cover,
+                    ),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -283,6 +329,16 @@ class _BookingsRequestPageState extends State<BookingsRequestPage> {
               final onTrip = await context.read<DriverManager>().checkOnTrip(
                 driverId!,
               );
+              if (booking.driver != null) {
+                if (driverId != booking.driver.id) {
+                  snackBarLogger(
+                    context,
+                    'Đây không phải đơn của bạn',
+                    'warning',
+                  );
+                  return;
+                }
+              }
 
               if (onTrip) {
                 snackBarLogger(
@@ -292,7 +348,8 @@ class _BookingsRequestPageState extends State<BookingsRequestPage> {
                 );
                 return;
               }
-              if (booking.type != driver!.typecar) {
+              if ((booking.type != driver!.typecar) &&
+                  booking.type != 'driver') {
                 snackBarLogger(context, 'Loại xe không phù hợp', 'warning');
                 return;
               }
@@ -319,6 +376,18 @@ class _BookingsRequestPageState extends State<BookingsRequestPage> {
             }),
           ],
         ),
+        if (booking.driver != null) ...[
+          const Divider(color: Colors.green, thickness: 2),
+          Row(
+            children: [
+              svgIcon('assets/icons/driver.svg', 'green', false),
+              Text(
+                "Yêu cầu: ${booking.driver.user.fullName}",
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
+        ],
         const Divider(color: Colors.green, thickness: 2),
         Row(
           children: [

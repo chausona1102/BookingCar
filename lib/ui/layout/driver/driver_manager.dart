@@ -92,8 +92,14 @@ class DriverManager extends ChangeNotifier {
     return await _driverService.getDriverIdByUserId(userId);
   }
 
+  // void disposeBookingListener() {
+  //   _bookingRequestsSub?.cancel();
+  // }
   void disposeBookingListener() {
     _bookingRequestsSub?.cancel();
+    _bookingRequestsSub = null;
+    _bookingRequests = [];
+    // notifyListeners();
   }
 
   // Booking Tracing nạ
@@ -108,9 +114,21 @@ class DriverManager extends ChangeNotifier {
     });
   }
 
+  Future<void> cancelAll() async {
+    await _bookingRequestsSub?.cancel();
+    await _driversSub?.cancel();
+    await _driverSub?.cancel();
+    await _bookingTracingSub?.cancel();
+    _bookingRequests = [];
+    _drivers = [];
+    _driver = null;
+    _currentBooking = null;
+    // notifyListeners();
+  }
+
   @override
   void dispose() {
-    _bookingRequestsSub?.cancel();
+    cancelAll();
     super.dispose();
   }
 

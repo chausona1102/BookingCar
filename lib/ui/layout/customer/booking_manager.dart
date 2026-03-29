@@ -128,6 +128,36 @@ class BookingManager extends ChangeNotifier {
     }
   }
 
+  Future<bool> addBookingWithDriver({
+    required String userId,
+    required double price,
+    required LocationModel pickupLocation,
+    required LocationModel dropoffLocation,
+    required String driverId,
+    required String type,
+    String status = 'pending',
+  }) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      return await _bookingService.addBookingWithDriver(
+        userId: userId,
+        price: price,
+        pickupLocation: pickupLocation,
+        dropoffLocation: dropoffLocation,
+        type: type,
+        driverId: driverId,
+        status: status,
+      );
+    } catch (e) {
+      logger.e('An error occured: ', error: e);
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future<BookingModel?> getCurrentTracing({required userId}) async {
     return await _bookingService.getCurrentTracing(userId);
   }
