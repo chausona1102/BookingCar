@@ -1,6 +1,5 @@
 import 'package:booking_app/models/user.dart';
 import 'package:booking_app/ui/auth/auth_manager.dart';
-import 'package:booking_app/ui/layout/driver/driver_manager.dart';
 import 'package:booking_app/ui/shared/avatarCircle.dart';
 import 'package:booking_app/ui/shared/navigation_bar.dart';
 import 'package:booking_app/ui/shared/navigation_bar_driver.dart';

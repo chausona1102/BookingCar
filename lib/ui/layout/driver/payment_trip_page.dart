@@ -1,5 +1,5 @@
 import 'package:booking_app/models/booking.dart';
-import 'package:booking_app/ui/layout/customer/payment_manager.dart';
+import 'package:booking_app/ui/layout/payment/payment_manager.dart';
 import 'package:booking_app/ui/shared/snackBarLogger.dart';
 import 'package:booking_app/utils/myFunction.dart';
 import 'package:booking_app/ui/shared/svgButton.dart';

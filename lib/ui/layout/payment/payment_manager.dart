@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:booking_app/models/vipdata.dart';
 import 'package:booking_app/services/customer_service.dart';
 
-
 class PaymentManager extends ChangeNotifier {
   final CustomerService _customerService = CustomerService();
   bool _initialized = false;
@@ -24,7 +23,8 @@ class PaymentManager extends ChangeNotifier {
     _initialized = true;
     notifyListeners();
   }
-    void createPaymentBooking(BookingModel booking, bankname, bankcode) {
+
+  void createPaymentBooking(BookingModel booking, bankname, bankcode) {
     transactionId = _generateTransactionId();
     bankName = bankname.toString();
     bankAccount = bankcode.toString();

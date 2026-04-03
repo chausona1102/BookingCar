@@ -1,3 +1,5 @@
+import 'package:booking_app/services/paypal_service.dart';
+import 'package:booking_app/ui/layout/payment/paypal_webview_page.dart';
 import 'package:booking_app/ui/shared/snackBarLogger.dart';
 import 'package:booking_app/utils/myFunction.dart';
 import '../../auth/auth_manager.dart';
@@ -8,8 +10,8 @@ import 'package:booking_app/ui/shared/myAppBar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import './payment_manager.dart';
-import 'bank_manager.dart';
+import 'payment_manager.dart';
+import '../customer/bank_manager.dart';
 import 'package:booking_app/ui/shared/button.dart';
 import 'package:go_router/go_router.dart';
 import 'package:booking_app/ui/auth/customer_manager.dart';
@@ -65,6 +67,61 @@ class _PaymentState extends State<PaymentPage> {
     });
   }
 
+  Future<void> _handlePaypal() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    final result = await PaypalService.createOrder(
+      amount: (widget.data.amount / 25000).toDouble(),
+      description: 'Membership - ${widget.data.plan}',
+    );
+
+    if (!mounted) return;
+    Navigator.pop(context);
+    if (result == null) {
+      snackBarLogger(context, 'Không thể kết nối PayPal', 'error');
+      return;
+    }
+
+    // Mở WebView PayPal
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PaypalWebviewPage(
+          approvalUrl: result['approvalUrl'],
+          orderId: result['orderId'],
+          onSuccess: (data) async {
+            Navigator.pop(context);
+
+            // Lưu membership
+            final authManager = context.read<AuthManager>();
+            final success = await context
+                .read<PaymentManager>()
+                .addMemeberShips(
+                  user: authManager.currentUserId!,
+                  plan: widget.data.plan,
+                  discountpercent: widget.data.discountPercent,
+                );
+
+            if (!mounted) return;
+            if (success) {
+              context.go('/payment-success');
+            } else {
+              snackBarLogger(context, 'Lưu thông tin thất bại', 'error');
+            }
+          },
+          onCancel: () {
+            Navigator.pop(context);
+            snackBarLogger(context, 'Đã hủy thanh toán PayPal', 'warning');
+          },
+        ),
+      ),
+    );
+  }
+
   String toCapitalCase(String title) {
     if (title.isEmpty) return title;
     return title[0].toUpperCase() + title.substring(1).toLowerCase();
@@ -87,8 +144,6 @@ class _PaymentState extends State<PaymentPage> {
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Image.asset('assets/gifs/dancing.gif', width: 120),
-              // SvgPicture.asset('assets/icons/coin.svg'),
               const SizedBox(height: 20),
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -136,7 +191,38 @@ class _PaymentState extends State<PaymentPage> {
             // mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                'Chọn ngân hàng',
+                'Thoanh toán quốc tế',
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+              ),
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: _handlePaypal,
+                    icon: Image.asset('assets/images/paypal.png', width: 20),
+                    label: Text(
+                      'PayPal',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontStyle: FontStyle.italic,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFF003087),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Thanh toán nội địa',
                 style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
               ),
               const SizedBox(height: 10),
@@ -187,7 +273,7 @@ class _PaymentState extends State<PaymentPage> {
                   },
                 ),
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 30),
               Center(
                 child: Column(
                   children: [
@@ -198,7 +284,6 @@ class _PaymentState extends State<PaymentPage> {
                         fontSize: 16,
                       ),
                     ),
-                    const SizedBox(height: 10),
                     Text(
                       bankname,
                       style: TextStyle(
